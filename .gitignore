@@ -1,0 +1,29 @@
+# ROS 2 / colcon generated files
+build/
+install/
+log/
+humble/build/
+humble/install/
+humble/log/
+
+# Python/cache/editor files
+__pycache__/
+*.py[cod]
+.cache/
+.ccache/
+.ccache-tmp/
+.vscode/
+.idea/
+
+# Runtime data and bags
+*.bag
+*.db3
+*.mcap
+
+# Raw source assets kept outside ROS packages
+3D模型合集/
+/map.pcd
+
+# OS files
+.DS_Store
+Thumbs.db

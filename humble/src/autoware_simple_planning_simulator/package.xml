@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>autoware_simple_planning_simulator</name>
+  <version>0.0.1</version>
+  <description>Empty compatibility package for AGV standalone simulation builds.</description>
+  <maintainer email="user@example.com">user</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>eigen</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
