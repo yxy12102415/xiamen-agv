@@ -4,6 +4,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
+if [ ! -f /opt/ros/galactic/setup.bash ]; then
+  exec "${SCRIPT_DIR}/docker.sh" sim "$@"
+fi
+
 enable_nvidia_offload() {
   if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
     export __NV_PRIME_RENDER_OFFLOAD=1

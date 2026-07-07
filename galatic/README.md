@@ -161,6 +161,33 @@ axis-center equivalent steering angles.
 
 ## Build
 
+### Docker / Container
+
+If the host does not have ROS 2 Galactic installed, use the Docker helper:
+
+```bash
+cd /data/projects/xiamen-agv-sim/galatic
+./docker.sh shell
+```
+
+Inside the container:
+
+```bash
+colcon build --symlink-install --build-base build_galactic --install-base install_galactic --log-base log_galactic
+source install_galactic/setup.bash
+```
+
+You can also build or run directly from the host:
+
+```bash
+./docker.sh build
+./docker.sh sim
+./docker.sh sim control
+```
+
+`./sim.sh` also auto-enters the Docker helper when `/opt/ros/galactic` is not
+available on the host.
+
 ```bash
 source /opt/ros/galactic/setup.bash
 cd /data/projects/xiamen-agv-sim/galatic
