@@ -70,7 +70,7 @@ public:
       {"/sensing/lidar/rl_lidar_1/pointcloud", "rl_lidar_1_points", 1.0F, 0.95F, 0.0F},
       {"/sensing/lidar/rr_lidar_1/pointcloud", "rr_lidar_1_points", 1.0F, 0.0F, 0.0F},
       {"/sensing/lidar/fl_lidar_2/pointcloud", "fl_lidar_2_points", 1.0F, 0.95F, 0.0F},
-      {"/sensing/lidar/rl_lidar_2/pointcloud", "rl_lidar_2_points", 1.0F, 0.95F, 0.0F},
+      {"/sensing/lidar/rr_lidar_2/pointcloud", "rr_lidar_2_points", 1.0F, 0.95F, 0.0F},
     };
 
     int32_t id = 0;

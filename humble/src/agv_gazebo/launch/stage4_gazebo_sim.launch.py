@@ -142,7 +142,7 @@ def generate_launch_description():
         f"/sensing/lidar/rl_lidar_1/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/rr_lidar_1/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/fl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
-        f"/sensing/lidar/rl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
+        f"/sensing/lidar/rr_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/camera/front/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
         f"/sensing/camera/front/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
         f"/sensing/camera/rear/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
@@ -155,12 +155,12 @@ def generate_launch_description():
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.05", "1.52", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.05", "-1.52", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.05", "1.52", "1.25", "2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.05", "-1.52", "1.25", "-2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
-        ("rl_lidar_2", "-4.55", "1.52", "2.45", "3.141593", "0.0", "0.0"),
+        ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
     lidar_static_transforms = [
         (
@@ -180,7 +180,7 @@ def generate_launch_description():
         ("/sim/lidar/rl_lidar_1_raw", "/sensing/lidar/rl_lidar_1/pointcloud", "rl_lidar_1"),
         ("/sim/lidar/rr_lidar_1_raw", "/sensing/lidar/rr_lidar_1/pointcloud", "rr_lidar_1"),
         ("/sim/lidar/fl_lidar_2_raw", "/sensing/lidar/fl_lidar_2/pointcloud", "fl_lidar_2"),
-        ("/sim/lidar/rl_lidar_2_raw", "/sensing/lidar/rl_lidar_2/pointcloud", "rl_lidar_2"),
+        ("/sim/lidar/rr_lidar_2_raw", "/sensing/lidar/rr_lidar_2/pointcloud", "rr_lidar_2"),
     ]
     sensor_static_transforms = [
         (imu_x, imu_y, imu_z, imu_yaw, imu_pitch, imu_roll, imu_frame_id, "imu_tf"),
@@ -288,7 +288,7 @@ def generate_launch_description():
                     ("/sensing/lidar/rl_lidar_1/points", "/sim/lidar/rl_lidar_1_raw"),
                     ("/sensing/lidar/rr_lidar_1/points", "/sim/lidar/rr_lidar_1_raw"),
                     ("/sensing/lidar/fl_lidar_2/points", "/sim/lidar/fl_lidar_2_raw"),
-                    ("/sensing/lidar/rl_lidar_2/points", "/sim/lidar/rl_lidar_2_raw"),
+                    ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw"),
                 ],
             ),
             *[
@@ -406,6 +406,7 @@ def generate_launch_description():
                         "update_rate": 20.0,
                         "traffic_vehicle_speed": 1.5,
                         "pedestrian_speed": 0.8,
+                        "yard_crane_speed": 1.2,
                     }
                 ],
             ),
@@ -435,8 +436,8 @@ def generate_launch_description():
                     {
                         "output_topic": "/visualization/lidar_point_markers",
                         "point_size": 0.07,
-                        "sample_step": 8,
-                        "max_points_per_cloud": 8000,
+                        "sample_step": 2,
+                        "max_points_per_cloud": 20000,
                     }
                 ],
             ),

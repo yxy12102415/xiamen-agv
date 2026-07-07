@@ -69,6 +69,26 @@ geometry_msgs::msg::Quaternion yaw_to_quaternion(const double yaw)
   return q;
 }
 
+std::pair<double, double> ackermann_left_right_steer(
+  const double axle_steer, const double equivalent_wheelbase, const double wheel_tread)
+{
+  const double abs_steer = std::abs(axle_steer);
+  if (abs_steer < 1.0e-6 || equivalent_wheelbase <= 1.0e-6 || wheel_tread <= 1.0e-6) {
+    return {axle_steer, axle_steer};
+  }
+
+  const double sign = std::copysign(1.0, axle_steer);
+  const double outer_steer = abs_steer;
+  const double outer_radius = equivalent_wheelbase / std::tan(outer_steer);
+  const double inner_radius = std::max(1.0e-3, outer_radius - wheel_tread);
+  const double inner_steer = std::atan(equivalent_wheelbase / inner_radius);
+
+  if (axle_steer > 0.0) {
+    return {sign * inner_steer, sign * outer_steer};
+  }
+  return {sign * outer_steer, sign * inner_steer};
+}
+
 double yaw_from_quaternion(const geometry_msgs::msg::Quaternion & q)
 {
   return std::atan2(
@@ -173,8 +193,16 @@ public:
     steering_mode_transition_time_ = declare_parameter<double>("steering_mode_transition_time", 0.45);
     wheel_tread_ = declare_parameter<double>("wheel_tread", 1.36);
     wheel_radius_ = declare_parameter<double>("wheel_radius", 0.66);
+    enable_ackermann_wheel_angles_ = declare_parameter<bool>("enable_ackermann_wheel_angles", true);
+    // Back-calculated from the sheet's target inner/outer wheel angles using the current
+    // wheel tread: front 27.4 deg outer -> 33.0 deg inner, rear 22.6 deg outer -> 30.0 deg inner.
+    ackermann_front_wheelbase_ =
+      declare_parameter<double>("ackermann_front_wheelbase", 6.116611371515338);
+    ackermann_rear_wheelbase_ =
+      declare_parameter<double>("ackermann_rear_wheelbase", 3.5527407651152627);
     center_of_gravity_height_m_ =
       declare_parameter<double>("center_of_gravity_height_m", 0.8);
+    // Estimated longitudinal dynamics parameters; replace with measured data when available.
     rolling_resistance_coefficient_ =
       declare_parameter<double>("rolling_resistance_coefficient", 0.012);
     aerodynamic_drag_coefficient_ =
@@ -573,15 +601,22 @@ private:
   void publish_wheel_transforms(
     const rclcpp::Time & stamp, const double front_steer, const double rear_steer)
   {
+    const auto [front_left_steer, front_right_steer] = enable_ackermann_wheel_angles_
+      ? ackermann_left_right_steer(front_steer, ackermann_front_wheelbase_, wheel_tread_)
+      : std::pair<double, double>{front_steer, front_steer};
+    const auto [rear_left_steer, rear_right_steer] = enable_ackermann_wheel_angles_
+      ? ackermann_left_right_steer(rear_steer, ackermann_rear_wheelbase_, wheel_tread_)
+      : std::pair<double, double>{rear_steer, rear_steer};
+
     const std::array<geometry_msgs::msg::TransformStamped, 8> wheel_transforms{{
       make_wheel_transform(
-        stamp, "axle1_left_wheel", wheel_tf_front_x_, wheel_tf_left_y_, front_steer),
+        stamp, "axle1_left_wheel", wheel_tf_front_x_, wheel_tf_left_y_, front_left_steer),
       make_wheel_transform(
-        stamp, "axle1_right_wheel", wheel_tf_front_x_, wheel_tf_right_y_, front_steer),
+        stamp, "axle1_right_wheel", wheel_tf_front_x_, wheel_tf_right_y_, front_right_steer),
       make_wheel_transform(
-        stamp, "axle2_left_wheel", wheel_tf_mid_front_x_, wheel_tf_left_y_, rear_steer),
+        stamp, "axle2_left_wheel", wheel_tf_mid_front_x_, wheel_tf_left_y_, rear_left_steer),
       make_wheel_transform(
-        stamp, "axle2_right_wheel", wheel_tf_mid_front_x_, wheel_tf_right_y_, rear_steer),
+        stamp, "axle2_right_wheel", wheel_tf_mid_front_x_, wheel_tf_right_y_, rear_right_steer),
       make_wheel_transform(
         stamp, "axle3_left_wheel", wheel_tf_mid_rear_x_, wheel_tf_left_y_, 0.0),
       make_wheel_transform(
@@ -846,6 +881,9 @@ private:
   double steering_mode_transition_time_;
   double wheel_tread_;
   double wheel_radius_;
+  bool enable_ackermann_wheel_angles_;
+  double ackermann_front_wheelbase_;
+  double ackermann_rear_wheelbase_;
   double center_of_gravity_height_m_;
   double rolling_resistance_coefficient_;
   double aerodynamic_drag_coefficient_;

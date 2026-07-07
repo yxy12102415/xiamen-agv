@@ -131,6 +131,10 @@ def generate_launch_description():
     enable_static_scene_markers = LaunchConfiguration("enable_static_scene_markers")
     enable_centerline_trajectory = LaunchConfiguration("enable_centerline_trajectory")
     enable_mpc = LaunchConfiguration("enable_mpc")
+    enable_vehicle_interface = LaunchConfiguration("enable_vehicle_interface")
+    vehicle_interface_shadow_mode = LaunchConfiguration("vehicle_interface_shadow_mode")
+    vehicle_interface_autonomous_enable = LaunchConfiguration("vehicle_interface_autonomous_enable")
+    vehicle_interface_mock_feedback = LaunchConfiguration("vehicle_interface_mock_feedback")
     target_speed = LaunchConfiguration("target_speed")
     route_lane_index = LaunchConfiguration("route_lane_index")
     normal_lane_change_guard_distance = LaunchConfiguration("normal_lane_change_guard_distance")
@@ -173,7 +177,7 @@ def generate_launch_description():
         f"/sensing/lidar/rl_lidar_1/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/rr_lidar_1/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/fl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
-        f"/sensing/lidar/rl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
+        f"/sensing/lidar/rr_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
     ]
     camera_bridges = [
         f"/sensing/camera/front/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
@@ -187,12 +191,12 @@ def generate_launch_description():
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.05", "1.52", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.05", "-1.52", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.05", "1.52", "1.25", "2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.05", "-1.52", "1.25", "-2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
-        ("rl_lidar_2", "-4.55", "1.52", "2.45", "3.141593", "0.0", "0.0"),
+        ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
     lidar_static_transforms = [
         (
@@ -212,7 +216,7 @@ def generate_launch_description():
         ("/sim/lidar/rl_lidar_1_raw", "/sensing/lidar/rl_lidar_1/pointcloud", "rl_lidar_1"),
         ("/sim/lidar/rr_lidar_1_raw", "/sensing/lidar/rr_lidar_1/pointcloud", "rr_lidar_1"),
         ("/sim/lidar/fl_lidar_2_raw", "/sensing/lidar/fl_lidar_2/pointcloud", "fl_lidar_2"),
-        ("/sim/lidar/rl_lidar_2_raw", "/sensing/lidar/rl_lidar_2/pointcloud", "rl_lidar_2"),
+        ("/sim/lidar/rr_lidar_2_raw", "/sensing/lidar/rr_lidar_2/pointcloud", "rr_lidar_2"),
     ]
     ignition_pointcloud_bridges = []
     if not gazebo_packages["supports_service_bridge"]:
@@ -222,7 +226,7 @@ def generate_launch_description():
             ("/sensing/lidar/rl_lidar_1/points", "/sim/lidar/rl_lidar_1_raw", "rl_lidar_1"),
             ("/sensing/lidar/rr_lidar_1/points", "/sim/lidar/rr_lidar_1_raw", "rr_lidar_1"),
             ("/sensing/lidar/fl_lidar_2/points", "/sim/lidar/fl_lidar_2_raw", "fl_lidar_2"),
-            ("/sensing/lidar/rl_lidar_2/points", "/sim/lidar/rl_lidar_2_raw", "rl_lidar_2"),
+            ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw", "rr_lidar_2"),
         ]
     sensor_static_transforms = [
         (imu_x, imu_y, imu_z, imu_yaw, imu_pitch, imu_roll, imu_frame_id, "imu_tf"),
@@ -313,6 +317,10 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_static_scene_markers", default_value="false"),
             DeclareLaunchArgument("enable_centerline_trajectory", default_value="true"),
             DeclareLaunchArgument("enable_mpc", default_value="true"),
+            DeclareLaunchArgument("enable_vehicle_interface", default_value="true"),
+            DeclareLaunchArgument("vehicle_interface_shadow_mode", default_value="true"),
+            DeclareLaunchArgument("vehicle_interface_autonomous_enable", default_value="false"),
+            DeclareLaunchArgument("vehicle_interface_mock_feedback", default_value="false"),
             DeclareLaunchArgument("target_speed", default_value="4.0"),
             DeclareLaunchArgument("route_lane_index", default_value="2"),
             DeclareLaunchArgument("normal_lane_change_guard_distance", default_value="12.0"),
@@ -368,7 +376,7 @@ def generate_launch_description():
                     ("/sensing/lidar/rl_lidar_1/points", "/sim/lidar/rl_lidar_1_raw"),
                     ("/sensing/lidar/rr_lidar_1/points", "/sim/lidar/rr_lidar_1_raw"),
                     ("/sensing/lidar/fl_lidar_2/points", "/sim/lidar/fl_lidar_2_raw"),
-                    ("/sensing/lidar/rl_lidar_2/points", "/sim/lidar/rl_lidar_2_raw"),
+                    ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw"),
                 ],
                 condition=IfCondition(enable_lidar_topics),
             ),
@@ -480,22 +488,27 @@ def generate_launch_description():
                         "steer_lim": 0.47822,
                         "steer_lim_front": 0.47822,
                         "steer_lim_rear": 0.39444,
-                        # Empty-vehicle estimated dynamics; see
-                        # agv_vehicle_model/config/empty_vehicle_estimated_params.yaml.
+                        # From vehicle parameter sheet.
                         "vehicle_mass_kg": 23000.0,
+                        # Estimated, not measured on the real vehicle.
                         "yaw_inertia_kgm2": 432363.7513,
+                        # Estimated tire stiffness; the parameter sheet marks this as no data.
                         "front_cornering_stiffness_n_rad": 400000.0,
                         "rear_cornering_stiffness_n_rad": 400000.0,
                         "axle_count": 4,
                         "wheel_count": 8,
+                        # Derived from uniform load distribution: 23000 kg / 4 axles / 8 wheels.
                         "axle_load_kg": 5750.0,
                         "wheel_load_kg": 2875.0,
                         "front_normal_load_n": 112815.0,
                         "rear_normal_load_n": 112815.0,
+                        # Estimated from current Gazebo vehicle geometry; not yet matched to
+                        # the sheet values 1/4 axle=4.65 m and 2/3 axle=3.0 m.
                         "axle1_x": 4.479714,
                         "axle2_x": 2.596727,
                         "axle3_x": -2.570058,
                         "axle4_x": -4.479289,
+                        # Per-axle split of the estimated front/rear tire stiffness above.
                         "axle1_cornering_stiffness_n_rad": 200000.0,
                         "axle2_cornering_stiffness_n_rad": 200000.0,
                         "axle3_cornering_stiffness_n_rad": 200000.0,
@@ -513,11 +526,20 @@ def generate_launch_description():
                         "wheelbase_r": 4.479289,
                         "wheel_tread": 2.381384,
                         "wheel_radius": 0.66,
+                        "enable_ackermann_wheel_angles": True,
+                        # Back-calculated Ackermann equivalent wheelbases so the visual
+                        # inner/outer wheel angles match the sheet:
+                        # front 27.4 deg outer -> 33.0 deg inner,
+                        # rear 22.6 deg outer -> 30.0 deg inner.
+                        "ackermann_front_wheelbase": 6.116611371515338,
+                        "ackermann_rear_wheelbase": 3.5527407651152627,
+                        # Estimated longitudinal dynamics and aero/rolling parameters.
                         "center_of_gravity_height_m": 0.8,
                         "rolling_resistance_coefficient": 0.012,
                         "aerodynamic_drag_coefficient": 1.10,
                         "frontal_area_m2": 7.936695,
                         "air_density_kg_m3": 1.225,
+                        # Estimated wheel rotational inertia; the parameter sheet has no data.
                         "wheel_inertia_kgm2": 67.0824,
                         "wheel_tf_front_x": 4.479714,
                         "wheel_tf_mid_front_x": 2.596727,
@@ -590,59 +612,115 @@ def generate_launch_description():
             ),
             Node(
                 package="agv_mpc_controller",
-                executable="pid_trajectory_controller",
-                name="pid_trajectory_controller",
+                executable="sampling_mpc_controller",
+                name="sampling_mpc_controller",
                 output="screen",
                 parameters=[
                     {
                         "trajectory_topic": "/planning/scenario_planning/trajectory",
                         "odom_topic": "/localization/kinematic_state",
                         "steering_topic": "/vehicle/status/steering_status",
-                        "control_topic": "/control/command/control_cmd",
-                        "two_axis_steer_topic": "/agv/control/two_axis_steer_cmd",
-                        "gear_topic": "/control/command/gear_cmd",
+                        "front_steer_topic": "/agv/status/front_steer",
+                        "rear_steer_topic": "/agv/status/rear_steer",
+                        "control_topic": "/control/command/control_cmd_raw",
+                        "two_axis_steer_topic": "/agv/control/two_axis_steer_cmd_raw",
+                        "gear_topic": "/control/command/gear_cmd_raw",
                         "control_rate": 30.0,
+                        "prediction_dt": 0.2,
+                        "horizon_steps": 12,
                         "target_speed": target_speed,
-                        "max_drive_accel": 0.35,
-                        "max_brake_decel": 0.35,
-                        "stop_brake_decel": 1.0,
+                        "vx_lim": 5.0,
+                        "vx_rate_lim": 0.35,
                         "steer_lim": 0.47822,
+                        "steer_lim_front": 0.47822,
+                        "steer_lim_rear": 0.39444,
                         "steer_rate_lim": 0.261799,
+                        "command_steer_rate_lim": 0.261799,
+                        "prediction_steer_rate_lim": 0.261799,
+                        "prediction_vx_time_constant": 0.2,
+                        "prediction_steer_time_constant": 0.05,
+                        "prediction_drive_delay": 0.05,
+                        "prediction_brake_delay": 0.05,
+                        "prediction_drive_time_constant": 0.18,
+                        "prediction_brake_time_constant": 0.18,
+                        "prediction_steer_delay": 0.02,
                         "wheelbase_f": 4.479714,
                         "wheelbase_r": 4.479289,
                         "axle2_x": 2.596727,
+                        "axle3_x": -2.570058,
+                        "axle4_x": -4.479289,
                         "steering_mode": steering_mode,
-                        "asymmetric_rear_steer_ratio": -0.5,
-                        "rear_steer_lim": 0.39444,
-                        "independent_beta_limit": 0.22,
-                        "independent_curvature_feedback_limit": 0.045,
-                        "independent_rear_steer_scale": 0.75,
+                        "two_axis_beta_limit": 0.22,
+                        "two_axis_lateral_gain": 0.12,
                         "curvature_preview_distance": 5.0,
                         "feedforward_steer_limit": 0.42,
-                        "lateral_kp": 0.12,
-                        "lateral_ki": 0.003,
-                        "lateral_kd": 0.06,
-                        "heading_kp": 0.75,
-                        "heading_ki": 0.01,
-                        "heading_kd": 0.05,
-                        "speed_kp": 0.8,
-                        "speed_ki": 0.08,
-                        "speed_kd": 0.02,
                         "enable_loop_stop": True,
                         "loop_stop_duration": 3.0,
                         "loop_stop_speed_threshold": 0.08,
-                        "loop_stop_enter_speed_threshold": 0.30,
-                        "loop_stop_approach_distance": 30.0,
-                        "loop_stop_position_tolerance": 0.35,
-                        "loop_stop_delay_compensation": 0.5,
-                        "loop_stop_steer_decay_rate": 1.0,
-                        "loop_restart_lock_distance": 8.0,
                         "enable_error_log": enable_error_log,
-                        "error_log_path": "/tmp/agv_pid_error.csv",
+                        "error_log_path": error_log_path,
                         "closed_trajectory": True,
                     }
                 ],
                 condition=IfCondition(enable_mpc),
+            ),
+            Node(
+                package="agv_safety_supervisor",
+                executable="safety_supervisor_node",
+                name="agv_safety_supervisor",
+                output="screen",
+                parameters=[
+                    {
+                        "raw_control_topic": "/control/command/control_cmd_raw",
+                        "raw_two_axis_steer_topic": "/agv/control/two_axis_steer_cmd_raw",
+                        "raw_gear_topic": "/control/command/gear_cmd_raw",
+                        "safe_control_topic": "/control/command/control_cmd",
+                        "safe_two_axis_steer_topic": "/agv/control/two_axis_steer_cmd",
+                        "safe_gear_topic": "/control/command/gear_cmd",
+                        "odom_topic": "/localization/kinematic_state",
+                        "velocity_status_topic": "/vehicle/status/velocity_status",
+                        "control_mode_topic": "/vehicle/status/control_mode",
+                        "front_steer_topic": "/agv/status/front_steer",
+                        "rear_steer_topic": "/agv/status/rear_steer",
+                        "command_timeout": 0.2,
+                        "odom_timeout": 0.3,
+                        "feedback_timeout": 0.5,
+                        "require_autonomous_mode": True,
+                        "max_velocity": 5.0,
+                        "max_drive_accel": 0.35,
+                        "max_brake_decel": 4.0,
+                        "front_steer_limit": 0.47822,
+                        "rear_steer_limit": 0.39444,
+                        "stop_acceleration": -1.0,
+                        "stop_gear": "drive",
+                    }
+                ],
+                condition=IfCondition(enable_mpc),
+            ),
+            Node(
+                package="agv_vehicle_interface",
+                executable="reference_vehicle_interface_node",
+                name="reference_vehicle_interface",
+                output="screen",
+                parameters=[
+                    {
+                        "control_topic": "/control/command/control_cmd",
+                        "two_axis_steer_topic": "/agv/control/two_axis_steer_cmd",
+                        "gear_topic": "/control/command/gear_cmd",
+                        "tx_frame_topic": "/agv/reference_can/tx",
+                        "state_topic": "/agv/vehicle_interface/state",
+                        "shadow_mode": vehicle_interface_shadow_mode,
+                        "autonomous_enable": vehicle_interface_autonomous_enable,
+                        "mock_feedback": vehicle_interface_mock_feedback,
+                        "steering_mode": "axle12",
+                        "command_timeout": 0.2,
+                        "max_velocity": 5.0,
+                        "max_acceleration": 0.35,
+                        "max_brake_decel": 4.0,
+                        "max_steer": 0.47822,
+                    }
+                ],
+                condition=IfCondition(enable_vehicle_interface),
             ),
             Node(
                 package="agv_gazebo",
@@ -699,6 +777,7 @@ def generate_launch_description():
                         "update_rate": 20.0,
                         "traffic_vehicle_speed": 1.5,
                         "pedestrian_speed": 0.8,
+                        "yard_crane_speed": 1.2,
                     }
                 ],
                 condition=IfCondition(enable_dynamic_obstacles),
@@ -738,8 +817,8 @@ def generate_launch_description():
                     {
                         "output_topic": "/visualization/lidar_point_markers",
                         "point_size": 0.07,
-                        "sample_step": 3,
-                        "max_points_per_cloud": 20000,
+                        "sample_step": 1,
+                        "max_points_per_cloud": 40000,
                         "z_offset": 0.0,
                         "use_cloud_stamp": False,
                         "marker_lifetime_sec": 1.0,

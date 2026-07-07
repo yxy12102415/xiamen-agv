@@ -89,166 +89,168 @@
       <pose>340 -40 0 0 0 3.1416</pose>
     </include>
 
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_01</name>
+      <pose>52 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_02</name>
+      <pose>148 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_03</name>
+      <pose>244 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_04</name>
+      <pose>340 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_01</name>
+      <pose>0 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_02</name>
+      <pose>45 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_03</name>
+      <pose>90 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_04</name>
+      <pose>135 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_05</name>
+      <pose>180 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_06</name>
+      <pose>225 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_07</name>
+      <pose>0 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_08</name>
+      <pose>45 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_09</name>
+      <pose>90 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_10</name>
+      <pose>135 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_11</name>
+      <pose>180 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_12</name>
+      <pose>225 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_13</name>
+      <pose>0 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_14</name>
+      <pose>45 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_15</name>
+      <pose>90 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_16</name>
+      <pose>135 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_17</name>
+      <pose>180 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_18</name>
+      <pose>225 140 0 0 0 0</pose>
+    </include>
+
 
 
 
     <include>
       <uri>model://moving_vehicle_simple</uri>
       <name>straight_moving_vehicle</name>
-      <pose>18 52 0 0 0 -1.5708</pose>
+      <pose>18 54 0 0 0 0</pose>
     </include>
 
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_01</name>
-      <pose>28.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_02</name>
-      <pose>28.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_03</name>
-      <pose>28.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_04</name>
-      <pose>28.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_05</name>
-      <pose>28.5 122.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_06</name>
-      <pose>70.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_07</name>
-      <pose>70.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_08</name>
-      <pose>70.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_09</name>
-      <pose>70.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_10</name>
-      <pose>70.5 122.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_11</name>
-      <pose>112.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_12</name>
-      <pose>112.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_13</name>
-      <pose>112.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_14</name>
-      <pose>112.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_15</name>
-      <pose>112.5 122.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_16</name>
-      <pose>154.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_17</name>
-      <pose>154.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_18</name>
-      <pose>154.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_19</name>
-      <pose>154.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_20</name>
-      <pose>154.5 122.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_21</name>
-      <pose>196.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_22</name>
-      <pose>196.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_23</name>
-      <pose>196.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_24</name>
-      <pose>196.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_25</name>
-      <pose>196.5 122.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_26</name>
-      <pose>238.5 74.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_27</name>
-      <pose>238.5 86.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_28</name>
-      <pose>238.5 98.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_29</name>
-      <pose>238.5 110.0 0 0 0 1.5708</pose>
-    </include>
-    <include>
-      <uri>model://container_block_3x3x4</uri>
-      <name>yard_block_3x3x4_30</name>
-      <pose>238.5 122.0 0 0 0 1.5708</pose>
-    </include>
 
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A01</name>
+      <pose>248.0 80.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A02</name>
+      <pose>36.0 110.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A03</name>
+      <pose>181.0 140.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A04</name>
+      <pose>96.0 168.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A05</name>
+      <pose>267.0 198.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A06</name>
+      <pose>14.0 226.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A07</name>
+      <pose>223.0 256.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A08</name>
+      <pose>132.0 286.0 0 0 0 0</pose>
+    </include>
 
     <include>
       <uri>model://agv_with_lidars</uri>

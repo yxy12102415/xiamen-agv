@@ -14,11 +14,150 @@ and control against the same Gazebo scene.
   publishers for RViz.
 - `src/agv_mpc_controller`: centerline trajectory publisher and lightweight
   sampling MPC tracker for the standalone simulation.
+- `src/agv_safety_supervisor`: command safety gate for velocity, acceleration,
+  braking, steering, and command timeout limits.
+- `src/agv_vehicle_interface`: reference vehicle-interface bridge / shadow-mode
+  node for moving toward real vehicle integration.
 - `src/autoware_*_msgs`: local Autoware-style message definitions used by the
   simulator interface. This workspace is Autoware-style, not a full Autoware
   checkout.
 - `src/agv_maps/map/xiamen-prod.osm`: Xiamen Lanelet2-style vector map.
 - `src/agv_bringup`: Autoware + Gazebo integration launch files and route helper.
+
+## Current Progress
+
+The project is currently at a **rich simulation / pre-real-vehicle integration**
+stage. It is useful for Gazebo/RViz scenario validation, perception topic
+plumbing, trajectory tracking experiments, and control-interface dry runs, but it
+is **not yet a complete real-vehicle deployment package**.
+
+Implemented and working:
+
+- Xiamen port Gazebo scene with Lanelet2-style map visualization.
+- AGV visual/collision model with lidar, camera, GNSS, and IMU frames.
+- Six lidar point clouds bridged into ROS and visualized in RViz.
+- Standalone port-loop trajectory generation and sampling MPC tracking.
+- Two-axis AGV vehicle simulator with Autoware-style control/status topics.
+- Safety supervisor for command timeout, velocity, acceleration, braking, and
+  steering limits.
+- Dynamic scene objects:
+  - one straight-moving traffic vehicle,
+  - eight yard cranes aligned to the left-side lane groups,
+  - yard cranes moving along x from 0 m to 280 m at 1.2 m/s,
+  - three rows of container piles aligned to yard cranes,
+  - hanging containers under quay cranes on the controller trajectory lane.
+- Wheel TF / Gazebo wheel visualization now applies Ackermann inner/outer wheel
+  angle geometry for the first two steering axles.
+
+Recent scene layout:
+
+- Yard cranes `A01..A08` are aligned at y:
+  `80, 110, 140, 168, 198, 226, 256, 286`.
+- Yard crane initial x positions are intentionally shuffled:
+  `248, 36, 181, 96, 267, 14, 223, 132`.
+- Container piles use `container_block_3x6x2`, with 3 containers in x, 6 in y,
+  and 2 layers in z.
+- Container pile rows are at y `80, 110, 140`; x positions are
+  `0, 45, 90, 135, 180, 225`.
+- Quay hanging containers are at x `52, 148, 244, 340`, y `10.0013`, z `10.0`,
+  with the long side along x.
+
+## Real Vehicle Readiness
+
+This workspace is **not ready to deploy directly to a real AGV yet**. The main
+remaining work is calibration, interface validation, and safety verification:
+
+- Replace estimated vehicle dynamics parameters with measured real-vehicle data.
+- Validate CAN / chassis protocol mapping against the real controller.
+- Add hardware E-stop, remote/local mode, and watchdog tests around the safety
+  supervisor.
+- Verify GNSS/IMU/lidar/camera extrinsics against real calibration.
+- Validate localization frame conventions and map origin against the production
+  map.
+- Run low-speed closed-course tests before enabling higher-speed MPC tracking.
+- Add loaded-vehicle parameters or adaptive/gain-scheduled MPC before carrying
+  containers on the real vehicle.
+
+### Real Vehicle Interface Status
+
+English:
+
+This workspace already contains a **real-vehicle interface skeleton**, but it is
+not yet a validated production chassis interface.
+
+- Interface node:
+  `src/agv_vehicle_interface/agv_vehicle_interface/real_vehicle_interface_node.py`
+- Real bringup launch:
+  `src/agv_bringup/launch/real_bringup.launch.py`
+- Supported transport modes:
+  `dry_run`, `socketcan`, and `udp`
+- Default safety state:
+  `dry_run=true`, `shadow_mode=true`, `autonomous_enable=false`
+
+The current interface is intended for bench testing, shadow-mode testing, and
+protocol integration. Before real driving, the vendor chassis DBC / Ethernet ICD
+must be integrated and verified, including CAN IDs, byte layout, scaling,
+checksums, heartbeat, fault bits, E-stop, braking priority, mode switching, and
+all feedback decoding.
+
+中文：
+
+当前项目里**已经有实车接口骨架**，但还不是已经完成验证的正式实车底盘接口。
+
+- 接口节点：
+  `src/agv_vehicle_interface/agv_vehicle_interface/real_vehicle_interface_node.py`
+- 实车启动文件：
+  `src/agv_bringup/launch/real_bringup.launch.py`
+- 支持的通信模式：
+  `dry_run`、`socketcan`、`udp`
+- 默认安全状态：
+  `dry_run=true`，`shadow_mode=true`，`autonomous_enable=false`
+
+也就是说，默认不会真正驱动车辆。目前它适合做台架测试、影子模式测试和协议联调。
+真正上车前，还需要接入并验证厂家正式底盘 DBC / 以太网 ICD，包括 CAN ID、字节
+定义、缩放比例、校验、心跳、故障位、急停、制动优先级、模式切换和全部反馈解析。
+
+For load handling, start with discrete parameter sets such as:
+
+```text
+empty
+loaded_light
+loaded_heavy
+```
+
+Each set should update mass, yaw inertia, axle loads, tire cornering stiffness,
+drive/brake response, and MPC prediction parameters. A fully adaptive MPC can be
+added later after the simpler parameter-switching model is validated.
+
+## Vehicle Model Parameter Status
+
+Some parameters are from the supplied vehicle sheet; others are estimated or
+back-calculated because measured values are not available yet.
+
+Currently matched / configured:
+
+- Mass: `23000 kg`.
+- Wheel rolling radius: `0.66 m`.
+- Steering rate limit: `0.261799 rad/s` = `15 deg/s`.
+- Max drive acceleration: `0.35 m/s^2`.
+- Max brake deceleration: `4.0 m/s^2`, aligned with the line-control braking
+  requirement rather than the older table value of `0.35 m/s^2`.
+- Ackermann visual wheel angles:
+  - front: `27.4 deg` outer gives approximately `33.0 deg` inner,
+  - rear: `22.6 deg` outer gives approximately `30.0 deg` inner.
+
+Estimated / not measured:
+
+- `yaw_inertia_kgm2 = 432363.7513`.
+- Tire cornering stiffness values.
+- Rolling resistance, aerodynamic drag, frontal area, and wheel inertia.
+- Current axle positions in the model are based on the Gazebo geometry and are
+  not yet matched to the sheet values of 4.65 m for axles 1/4 and 3.0 m for
+  axles 2/3.
+
+Important limitation: Ackermann inner/outer angles are currently applied to TF
+and Gazebo wheel visualization. The MPC and vehicle dynamics model still use
+axis-center equivalent steering angles.
 
 ## Build
 
@@ -115,8 +254,7 @@ the AD API operation mode services.
 
 ## Scene
 
-The default Xiamen world is intentionally static while the map and scene are
-being brought up. It contains:
+The default Xiamen world contains both static map geometry and dynamic obstacles:
 
 - `xiamen_site`: simplified lane surface and markings generated from
   `src/agv_maps/map/xiamen-prod.osm`
@@ -124,6 +262,12 @@ being brought up. It contains:
 - `ego_agv`: AGV model sized from `3D模型合集/AGV/agv.glb`; Gazebo uses split
   STL visuals for body/deck materials plus clean wheel-group geometry extracted
   from the AGV model, while RViz uses the AGV DAE mesh.
+- `yard_crane_A01` through `yard_crane_A08`: moving yard cranes, driven by
+  `dynamic_obstacle_simulator_node`.
+- `yard_container_pile_01` through `yard_container_pile_18`: container stacks in
+  the yard area.
+- `quay_hanging_container_01` through `quay_hanging_container_04`: suspended
+  containers under quay cranes.
 
 If the AGV flickers or jumps, first check for stale Gazebo or duplicate
 simulation processes:

@@ -10,6 +10,7 @@ import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from std_msgs.msg import Float32
+from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import String
 
 
@@ -43,29 +44,35 @@ class SamplingMpcController(Node):
         self.declare_parameter("rear_steer_topic", "/agv/status/rear_steer")
         self.declare_parameter("steering_mode_topic", "/agv/steering_mode_cmd")
         self.declare_parameter("control_topic", "/control/command/control_cmd")
+        self.declare_parameter("two_axis_steer_topic", "/agv/control/two_axis_steer_cmd")
         self.declare_parameter("gear_topic", "/control/command/gear_cmd")
         self.declare_parameter("control_rate", 30.0)
         self.declare_parameter("prediction_dt", 0.2)
         self.declare_parameter("horizon_steps", 12)
         self.declare_parameter("target_speed", 4.0)
         self.declare_parameter("vx_lim", 5.0)
-        self.declare_parameter("vx_rate_lim", 2.0)
-        self.declare_parameter("steer_lim", 0.7)
-        self.declare_parameter("steer_rate_lim", 1.5)
-        self.declare_parameter("command_steer_rate_lim", 1.5)
-        self.declare_parameter("prediction_steer_rate_lim", 0.7)
+        self.declare_parameter("vx_rate_lim", 0.35)
+        self.declare_parameter("steer_lim", 0.47822)
+        self.declare_parameter("steer_rate_lim", 0.261799)
+        self.declare_parameter("command_steer_rate_lim", 0.261799)
+        self.declare_parameter("prediction_steer_rate_lim", 0.261799)
         self.declare_parameter("prediction_vx_time_constant", 0.2)
-        self.declare_parameter("prediction_steer_time_constant", 0.2)
-        self.declare_parameter("prediction_drive_delay", 0.3)
-        self.declare_parameter("prediction_brake_delay", 0.3)
-        self.declare_parameter("prediction_drive_time_constant", 0.2)
-        self.declare_parameter("prediction_brake_time_constant", 0.2)
-        self.declare_parameter("prediction_steer_delay", 0.1)
+        self.declare_parameter("prediction_steer_time_constant", 0.05)
+        self.declare_parameter("prediction_drive_delay", 0.05)
+        self.declare_parameter("prediction_brake_delay", 0.05)
+        self.declare_parameter("prediction_drive_time_constant", 0.18)
+        self.declare_parameter("prediction_brake_time_constant", 0.18)
+        self.declare_parameter("prediction_steer_delay", 0.02)
         self.declare_parameter("steer_lim_front", 0.47822)
         self.declare_parameter("steer_lim_rear", 0.39444)
-        self.declare_parameter("wheelbase_f", 1.0)
-        self.declare_parameter("wheelbase_r", 1.0)
-        self.declare_parameter("steering_mode", "asymmetric_4ws")
+        self.declare_parameter("wheelbase_f", 4.479714)
+        self.declare_parameter("wheelbase_r", 4.479289)
+        self.declare_parameter("axle2_x", 2.596727)
+        self.declare_parameter("axle3_x", -2.570058)
+        self.declare_parameter("axle4_x", -4.479289)
+        self.declare_parameter("steering_mode", "axle12_steer")
+        self.declare_parameter("two_axis_beta_limit", 0.22)
+        self.declare_parameter("two_axis_lateral_gain", 0.12)
         self.declare_parameter("enable_lane_change_mode", False)
         self.declare_parameter("lane_change_steering_mode", "crab")
         self.declare_parameter("fixed_lane_change_windows", "111.5:133.0,239.5:261.0")
@@ -124,7 +131,12 @@ class SamplingMpcController(Node):
         self.steer_lim_rear = self.get_parameter("steer_lim_rear").value
         self.wheelbase_f = self.get_parameter("wheelbase_f").value
         self.wheelbase_r = self.get_parameter("wheelbase_r").value
+        self.axle2_x = self.get_parameter("axle2_x").value
+        self.axle3_x = self.get_parameter("axle3_x").value
+        self.axle4_x = self.get_parameter("axle4_x").value
         self.normal_steering_mode = self.get_parameter("steering_mode").value
+        self.two_axis_beta_limit = self.get_parameter("two_axis_beta_limit").value
+        self.two_axis_lateral_gain = self.get_parameter("two_axis_lateral_gain").value
         self.enable_lane_change_mode = bool(self.get_parameter("enable_lane_change_mode").value)
         self.lane_change_steering_mode = self.get_parameter("lane_change_steering_mode").value
         self.fixed_lane_change_windows = self.parse_lane_change_windows(
@@ -232,6 +244,9 @@ class SamplingMpcController(Node):
             Float32, self.get_parameter("rear_steer_topic").value, self.on_rear_steer, 1
         )
         self.control_pub = self.create_publisher(Control, self.get_parameter("control_topic").value, 1)
+        self.two_axis_steer_pub = self.create_publisher(
+            Float32MultiArray, self.get_parameter("two_axis_steer_topic").value, 1
+        )
         self.gear_pub = self.create_publisher(GearCommand, self.get_parameter("gear_topic").value, 1)
         self.steering_mode_pub = self.create_publisher(
             String, self.get_parameter("steering_mode_topic").value, 1
@@ -488,11 +503,33 @@ class SamplingMpcController(Node):
         self.loop_stop_until = None
         return False
 
-    def split_steer(self, steer):
+    def two_axis_beta_command(self, x, y, yaw, reference):
+        if self.active_steering_mode not in ("independent_4ws", "axle12_steer"):
+            return 0.0
+        dx = x - reference["x"]
+        dy = y - reference["y"]
+        lateral_error = -math.sin(reference["yaw"]) * dx + math.cos(reference["yaw"]) * dy
+        heading_error = normalize_angle(reference["yaw"] - yaw)
+        return clamp(
+            heading_error - self.two_axis_lateral_gain * lateral_error,
+            -self.two_axis_beta_limit,
+            self.two_axis_beta_limit,
+        )
+
+    def split_steer(self, steer, beta_cmd=0.0):
         if self.active_steering_mode == "front_only":
             steer_f, steer_r = steer, 0.0
         elif self.active_steering_mode == "crab":
             steer_f, steer_r = steer, steer
+        elif self.active_steering_mode == "axle12_steer":
+            curvature_cmd = math.tan(steer) / max(1e-3, self.wheelbase_f)
+            beta_tan = math.tan(beta_cmd)
+            steer_f = math.atan(beta_tan + self.wheelbase_f * curvature_cmd)
+            steer_r = math.atan(beta_tan + self.axle2_x * curvature_cmd)
+        elif self.active_steering_mode == "independent_4ws":
+            curvature_cmd = math.tan(steer) / max(1e-3, self.wheelbase_f)
+            steer_f = math.atan(beta_cmd + self.wheelbase_f * curvature_cmd)
+            steer_r = math.atan(beta_cmd - self.wheelbase_r * curvature_cmd)
         elif self.active_steering_mode == "asymmetric_4ws":
             steer_f, steer_r = steer, -steer / 2.0
         else:
@@ -501,6 +538,28 @@ class SamplingMpcController(Node):
             clamp(steer_f, -self.steer_lim_front, self.steer_lim_front),
             clamp(steer_r, -self.steer_lim_rear, self.steer_lim_rear),
         )
+
+    def axle12_kinematics(self, vx, steer_f, steer_r):
+        axle_positions = [self.wheelbase_f, self.axle2_x, self.axle3_x, self.axle4_x]
+        axle_steers = [steer_f, steer_r, 0.0, 0.0]
+        sum_x = 0.0
+        sum_xx = 0.0
+        sum_y = 0.0
+        sum_xy = 0.0
+        for axle_x, axle_steer in zip(axle_positions, axle_steers):
+            desired_lateral_velocity = vx * math.tan(axle_steer)
+            sum_x += axle_x
+            sum_xx += axle_x * axle_x
+            sum_y += desired_lateral_velocity
+            sum_xy += axle_x * desired_lateral_velocity
+
+        axle_count = float(len(axle_positions))
+        denominator = axle_count * sum_xx - sum_x * sum_x
+        if abs(denominator) <= 1e-6:
+            return 0.0, 0.0
+        vy = (sum_y * sum_xx - sum_x * sum_xy) / denominator
+        omega = (axle_count * sum_xy - sum_x * sum_y) / denominator
+        return vy, omega
 
     def lane_change_metrics(self, reference):
         future = self.sample_reference(reference["s"] + self.lane_change_preview_distance)
@@ -583,6 +642,9 @@ class SamplingMpcController(Node):
 
     def curvature_from_steer(self, steer):
         steer_f, steer_r = self.split_steer(steer)
+        if self.active_steering_mode == "axle12_steer":
+            _, omega = self.axle12_kinematics(1.0, steer_f, steer_r)
+            return omega
         beta_num = self.wheelbase_f * math.tan(steer_r) + self.wheelbase_r * math.tan(steer_f)
         beta_den = self.wheelbase_f + self.wheelbase_r
         kappa_num = math.tan(steer_f) - math.tan(steer_r)
@@ -646,7 +708,7 @@ class SamplingMpcController(Node):
             "ref_steer": ref_steer,
         }
 
-    def step_model(self, state, accel, target_steer, elapsed):
+    def step_model(self, state, accel, target_steer, elapsed, command_reference=None):
         x, y, yaw, vx, ax, steer_f, steer_r = state
         dt = self.prediction_dt
 
@@ -682,8 +744,12 @@ class SamplingMpcController(Node):
         delayed_steer = delayed_value(
             self.last_steer_cmd, target_steer, self.prediction_steer_delay
         )
+        beta_cmd = 0.0
+        if command_reference is not None:
+            beta_cmd = self.two_axis_beta_command(x, y, yaw, command_reference)
         steer_f_des, steer_r_des = self.split_steer(
-            clamp(delayed_steer, -self.steer_lim_front, self.steer_lim_front)
+            clamp(delayed_steer, -self.steer_lim_front, self.steer_lim_front),
+            beta_cmd,
         )
         steer_f_rate = clamp(
             (steer_f_des - steer_f) / self.prediction_steer_time_constant,
@@ -702,15 +768,18 @@ class SamplingMpcController(Node):
             steer_r + steer_r_rate * dt, -self.steer_lim_rear, self.steer_lim_rear
         )
 
-        beta_num = self.wheelbase_f * math.tan(steer_r) + self.wheelbase_r * math.tan(steer_f)
-        beta_den = self.wheelbase_f + self.wheelbase_r
-        beta = math.atan2(beta_num, beta_den)
-        kappa_num = math.tan(steer_f) - math.tan(steer_r)
-        kappa_den = math.sqrt(beta_num * beta_num + beta_den * beta_den)
-        kappa = kappa_num / max(1e-6, kappa_den)
-        vy = vx * beta
-        speed = vx * math.sqrt(1.0 + beta * beta)
-        omega = speed * kappa
+        if self.active_steering_mode == "axle12_steer":
+            vy, omega = self.axle12_kinematics(vx, steer_f, steer_r)
+        else:
+            beta_num = self.wheelbase_f * math.tan(steer_r) + self.wheelbase_r * math.tan(steer_f)
+            beta_den = self.wheelbase_f + self.wheelbase_r
+            beta = math.atan2(beta_num, beta_den)
+            kappa_num = math.tan(steer_f) - math.tan(steer_r)
+            kappa_den = math.sqrt(beta_num * beta_num + beta_den * beta_den)
+            kappa = kappa_num / max(1e-6, kappa_den)
+            vy = vx * beta
+            speed = vx * math.sqrt(1.0 + beta * beta)
+            omega = speed * kappa
 
         x += (vx * math.cos(yaw) - vy * math.sin(yaw)) * dt
         y += (vx * math.sin(yaw) + vy * math.cos(yaw)) * dt
@@ -722,8 +791,10 @@ class SamplingMpcController(Node):
         cost = 0.0
         ref_index = start_reference["index"]
         for step in range(1, self.horizon_steps + 1):
+            command_reference = self.nearest_reference(*state[:2], ref_index, 30)
+            command_reference = self.normal_mode_reference(command_reference, guard_window)
             state = self.step_model(
-                state, accel, target_steer, step * self.prediction_dt
+                state, accel, target_steer, step * self.prediction_dt, command_reference
             )
             x, y, yaw, vx, ax, steer_f, steer_r = state
 
@@ -745,7 +816,8 @@ class SamplingMpcController(Node):
             cost += 2.2 * steer_energy
             cost += 0.65 * steer_energy * vx * vx
             cost += 0.08 * accel * accel
-            target_steer_f, target_steer_r = self.split_steer(target_steer)
+            beta_cmd = self.two_axis_beta_command(x, y, yaw, reference)
+            target_steer_f, target_steer_r = self.split_steer(target_steer, beta_cmd)
             steer_tracking = 0.5 * (
                 (target_steer_f - steer_f) * (target_steer_f - steer_f)
                 + (target_steer_r - steer_r) * (target_steer_r - steer_r)
@@ -894,6 +966,19 @@ class SamplingMpcController(Node):
         cmd.lateral.steering_tire_rotation_rate = 0.0
         cmd.lateral.is_defined_steering_tire_rotation_rate = True
         self.control_pub.publish(cmd)
+        self.publish_two_axis_steer(self.current_front_steer, self.current_rear_steer, 0.0, stop_accel)
+
+    def publish_two_axis_steer(self, front_steer, rear_steer, velocity, acceleration):
+        if self.active_steering_mode not in ("independent_4ws", "axle12_steer"):
+            return
+        msg = Float32MultiArray()
+        msg.data = [
+            float(clamp(front_steer, -self.steer_lim_front, self.steer_lim_front)),
+            float(clamp(rear_steer, -self.steer_lim_rear, self.steer_lim_rear)),
+            float(clamp(velocity, -self.vx_lim, self.vx_lim)),
+            float(clamp(acceleration, -self.vx_rate_lim, self.vx_rate_lim)),
+        ]
+        self.two_axis_steer_pub.publish(msg)
 
     def on_timer(self):
         if self.odom is None or len(self.trajectory) < 2:
@@ -989,6 +1074,9 @@ class SamplingMpcController(Node):
         )
         control.lateral.is_defined_steering_tire_rotation_rate = True
         self.control_pub.publish(control)
+        beta_cmd = self.two_axis_beta_command(x, y, yaw, start_reference)
+        front_steer, rear_steer = self.split_steer(next_steer, beta_cmd)
+        self.publish_two_axis_steer(front_steer, rear_steer, next_velocity, accel)
 
         gear = GearCommand()
         gear.stamp = stamp

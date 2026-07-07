@@ -39,7 +39,7 @@ Visualization Manager:
         agv_lidar_caps: false
         agv_lidar_shells: false
         agv_wheel_steer_indicators: false
-        agv_wheels: false
+        agv_wheels: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -80,7 +80,7 @@ Visualization Manager:
         fl_lidar_2_points: true
         fr_lidar_1_points: true
         rl_lidar_1_points: true
-        rl_lidar_2_points: true
+        rr_lidar_2_points: true
         rr_lidar_1_points: true
       Topic:
         Depth: 5
@@ -295,7 +295,7 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: RL_LiDAR-2 (Helios16, upward)
+      Name: RR_LiDAR-2 (Helios16, upward)
       Position Transformer: XYZ
       Selectable: true
       Size (Pixels): 1
@@ -307,7 +307,7 @@ Visualization Manager:
         Filter size: 1
         History Policy: Keep Last
         Reliability Policy: Best Effort
-        Value: /sensing/lidar/rl_lidar_2/pointcloud
+        Value: /sensing/lidar/rr_lidar_2/pointcloud
       Use Fixed Frame: true
       Use rainbow: false
       Value: true
@@ -334,7 +334,7 @@ Visualization Manager:
           Value: true
         rl_lidar_1:
           Value: true
-        rl_lidar_2:
+        rr_lidar_2:
           Value: true
         rl_s_gnss:
           Value: true
@@ -366,7 +366,7 @@ Visualization Manager:
               {}
             rl_lidar_1:
               {}
-            rl_lidar_2:
+            rr_lidar_2:
               {}
             rl_s_gnss:
               {}

@@ -85,6 +85,7 @@ public:
     update_rate_ = declare_parameter<double>("update_rate", 20.0);
     traffic_vehicle_speed_ = declare_parameter<double>("traffic_vehicle_speed", 1.5);
     pedestrian_speed_ = declare_parameter<double>("pedestrian_speed", 0.8);
+    yard_crane_speed_ = declare_parameter<double>("yard_crane_speed", 1.2);
 
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
     client_ = create_client<gazebo_interfaces::srv::SetEntityPose>(service_name_);
@@ -95,7 +96,8 @@ public:
       std::bind(&DynamicObstacleSimulatorNode::on_timer, this));
 
     start_time_ = now();
-    RCLCPP_INFO(get_logger(), "Animating traffic vehicle and pedestrians via %s", service_name_.c_str());
+    RCLCPP_INFO(
+      get_logger(), "Animating traffic vehicle and yard cranes via %s", service_name_.c_str());
   }
 
 private:
@@ -117,6 +119,18 @@ private:
     double y;
   };
 
+  struct AxisPingPongMotion
+  {
+    std::string entity_name;
+    double x_min;
+    double x_max;
+    double initial_x;
+    double y;
+    double z;
+    double speed;
+    double yaw;
+  };
+
   void on_timer()
   {
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
@@ -130,11 +144,26 @@ private:
 
     const double t = (now() - start_time_).seconds();
     const std::vector<SegmentMotion> motions{
-      {"straight_moving_vehicle", 18.00, 52.00, 18.00, 168.00, 0.0, traffic_vehicle_speed_, true},
+      {"straight_moving_vehicle", 18.00, 54.00, 168.00, 54.00, 0.0, traffic_vehicle_speed_, true},
     };
 
     for (const auto & motion : motions) {
       publish_motion_pose(motion, t);
+    }
+
+    const std::vector<AxisPingPongMotion> yard_crane_motions{
+      {"yard_crane_A01", 0.0, 280.0, 248.0, 80.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A02", 0.0, 280.0, 36.0, 110.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A03", 0.0, 280.0, 181.0, 140.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A04", 0.0, 280.0, 96.0, 168.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A05", 0.0, 280.0, 267.0, 198.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A06", 0.0, 280.0, 14.0, 226.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A07", 0.0, 280.0, 223.0, 256.0, 0.0, yard_crane_speed_, 0.0},
+      {"yard_crane_A08", 0.0, 280.0, 132.0, 286.0, 0.0, yard_crane_speed_, 0.0},
+    };
+
+    for (const auto & motion : yard_crane_motions) {
+      publish_axis_ping_pong_pose(motion, t);
     }
   }
 
@@ -205,6 +234,25 @@ private:
     send_pose(motion.entity_name, pose);
   }
 
+  void publish_axis_ping_pong_pose(const AxisPingPongMotion & motion, const double elapsed)
+  {
+    const double x_min = std::min(motion.x_min, motion.x_max);
+    const double x_max = std::max(motion.x_min, motion.x_max);
+    const double range = std::max(1.0e-3, x_max - x_min);
+    const double clamped_initial_x = std::clamp(motion.initial_x, x_min, x_max);
+    const double initial_distance = clamped_initial_x - x_min;
+    const double loop_distance =
+      std::fmod(initial_distance + elapsed * std::max(0.1, motion.speed), 2.0 * range);
+
+    geometry_msgs::msg::Pose pose;
+    pose.position.x =
+      loop_distance <= range ? x_min + loop_distance : x_max - (loop_distance - range);
+    pose.position.y = motion.y;
+    pose.position.z = motion.z;
+    pose.orientation = yaw_to_quaternion(motion.yaw);
+    send_pose(motion.entity_name, pose);
+  }
+
   void send_pose(const std::string & entity_name, const geometry_msgs::msg::Pose & pose)
   {
 #ifdef AGV_USE_IGN_TRANSPORT_FOR_POSE
@@ -231,6 +279,7 @@ private:
   double update_rate_;
   double traffic_vehicle_speed_;
   double pedestrian_speed_;
+  double yard_crane_speed_;
   rclcpp::Time start_time_;
 #ifdef AGV_USE_IGN_TRANSPORT_FOR_POSE
   ignition::transport::Node ign_node_;

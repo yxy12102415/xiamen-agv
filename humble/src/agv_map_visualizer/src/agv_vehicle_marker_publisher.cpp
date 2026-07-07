@@ -209,17 +209,17 @@ private:
     }
 
     const std::vector<SensorVisual> sensors = {
-      {"agv_lidars", 10, Marker::CYLINDER, 7.05, 1.52, 1.25, 0.785398, 0.18, 0.18, 0.12,
+      {"agv_lidars", 10, Marker::CYLINDER, 7.346, 1.560, 1.25, 0.785398, 0.18, 0.18, 0.12,
        color(1.0F, 0.95F, 0.0F, 1.0F)},
-      {"agv_lidars", 11, Marker::CYLINDER, 7.05, -1.52, 1.25, -0.785398, 0.18, 0.18, 0.12,
+      {"agv_lidars", 11, Marker::CYLINDER, 7.346, -1.560, 1.25, -0.785398, 0.18, 0.18, 0.12,
        color(1.0F, 0.0F, 0.0F, 1.0F)},
-      {"agv_lidars", 12, Marker::CYLINDER, -7.05, 1.52, 1.25, 2.356194, 0.18, 0.18, 0.12,
+      {"agv_lidars", 12, Marker::CYLINDER, -7.346, -1.560, 1.25, -2.356194, 0.18, 0.18, 0.12,
        color(1.0F, 0.95F, 0.0F, 1.0F)},
-      {"agv_lidars", 13, Marker::CYLINDER, -7.05, -1.52, 1.25, -2.356194, 0.18, 0.18, 0.12,
+      {"agv_lidars", 13, Marker::CYLINDER, -7.346, 1.560, 1.25, 2.356194, 0.18, 0.18, 0.12,
        color(1.0F, 0.0F, 0.0F, 1.0F)},
       {"agv_lidars", 14, Marker::CYLINDER, 4.55, 1.52, 2.45, 0.0, 0.22, 0.22, 0.16,
        color(1.0F, 0.95F, 0.0F, 1.0F)},
-      {"agv_lidars", 15, Marker::CYLINDER, -4.55, 1.52, 2.45, 3.141593, 0.22, 0.22, 0.16,
+      {"agv_lidars", 15, Marker::CYLINDER, -4.55, -1.52, 2.45, 3.141593, 0.22, 0.22, 0.16,
        color(1.0F, 0.95F, 0.0F, 1.0F)},
       {"agv_cameras", 20, Marker::CUBE, 7.15, 0.0, 1.25, 0.0, 0.16, 0.36, 0.22,
        color(0.0F, 0.95F, 1.0F, 1.0F)},

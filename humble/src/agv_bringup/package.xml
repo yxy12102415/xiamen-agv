@@ -11,6 +11,9 @@
   <exec_depend>agv_gazebo</exec_depend>
   <exec_depend>agv_map_visualizer</exec_depend>
   <exec_depend>agv_maps</exec_depend>
+  <exec_depend>agv_mpc_controller</exec_depend>
+  <exec_depend>agv_safety_supervisor</exec_depend>
+  <exec_depend>agv_vehicle_interface</exec_depend>
   <exec_depend>agv_vehicle_model</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>autoware_adapi_v1_msgs</exec_depend>

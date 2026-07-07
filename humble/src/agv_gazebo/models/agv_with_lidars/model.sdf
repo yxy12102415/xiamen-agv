@@ -311,7 +311,7 @@
       </visual>
 
       <visual name="fl_lidar_1_visual">
-        <pose>7.05 1.52 1.25 0 0 0</pose>
+        <pose>7.346 1.560 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.09</radius>
@@ -326,7 +326,7 @@
       </visual>
 
       <visual name="fr_lidar_1_visual">
-        <pose>7.05 -1.52 1.25 0 0 0</pose>
+        <pose>7.346 -1.560 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.09</radius>
@@ -341,7 +341,7 @@
       </visual>
 
       <visual name="rl_lidar_1_visual">
-        <pose>-7.05 1.52 1.25 0 0 0</pose>
+        <pose>-7.346 -1.560 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.09</radius>
@@ -356,7 +356,7 @@
       </visual>
 
       <visual name="rr_lidar_1_visual">
-        <pose>-7.05 -1.52 1.25 0 0 0</pose>
+        <pose>-7.346 1.560 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.09</radius>
@@ -385,8 +385,8 @@
         </material>
       </visual>
 
-      <visual name="rl_lidar_2_visual">
-        <pose>-4.55 1.52 2.45 0 0 0</pose>
+      <visual name="rr_lidar_2_visual">
+        <pose>-4.55 -1.52 2.45 0 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.11</radius>
@@ -458,13 +458,13 @@
 
       <!-- Four surrounding lidars and two upward lidars.  Coordinates follow the IGV body frame. -->
       <sensor name="fl_lidar_1" type="gpu_lidar">
-        <pose>7.05 1.52 1.25 0 0 0.785398</pose>
+        <pose>7.346 1.560 1.25 0 0 0.785398</pose>
         <topic>/sensing/lidar/fl_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -487,13 +487,13 @@
       </sensor>
 
       <sensor name="fr_lidar_1" type="gpu_lidar">
-        <pose>7.05 -1.52 1.25 0 0 -0.785398</pose>
+        <pose>7.346 -1.560 1.25 0 0 -0.785398</pose>
         <topic>/sensing/lidar/fr_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -516,13 +516,13 @@
       </sensor>
 
       <sensor name="rl_lidar_1" type="gpu_lidar">
-        <pose>-7.05 1.52 1.25 0 0 2.356194</pose>
+        <pose>-7.346 -1.560 1.25 0 0 -2.356194</pose>
         <topic>/sensing/lidar/rl_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -545,13 +545,13 @@
       </sensor>
 
       <sensor name="rr_lidar_1" type="gpu_lidar">
-        <pose>-7.05 -1.52 1.25 0 0 -2.356194</pose>
+        <pose>-7.346 1.560 1.25 0 0 2.356194</pose>
         <topic>/sensing/lidar/rr_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -580,7 +580,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -602,14 +602,14 @@
         <visualize>false</visualize>
       </sensor>
 
-      <sensor name="rl_lidar_2" type="gpu_lidar">
-        <pose>-4.55 1.52 2.45 0 0 3.141593</pose>
-        <topic>/sensing/lidar/rl_lidar_2</topic>
+      <sensor name="rr_lidar_2" type="gpu_lidar">
+        <pose>-4.55 -1.52 2.45 0 0 3.141593</pose>
+        <topic>/sensing/lidar/rr_lidar_2</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>240</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>

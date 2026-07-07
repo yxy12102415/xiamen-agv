@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="yard_crane">
+    <static>false</static>
+    <link name="base_link">
+      <gravity>false</gravity>
+      <self_collide>false</self_collide>
+      <visual name="left_leg_front">
+        <pose>0 -11.5 4.0 0 0 0</pose>
+        <geometry><box><size>1.0 0.8 8.0</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="right_leg_front">
+        <pose>0 11.5 4.0 0 0 0</pose>
+        <geometry><box><size>1.0 0.8 8.0</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="left_leg_rear">
+        <pose>4.0 -11.5 4.0 0 0 0</pose>
+        <geometry><box><size>1.0 0.8 8.0</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="right_leg_rear">
+        <pose>4.0 11.5 4.0 0 0 0</pose>
+        <geometry><box><size>1.0 0.8 8.0</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="main_girder_front">
+        <pose>0 0 8.4 0 0 0</pose>
+        <geometry><box><size>1.2 25.5 0.8</size></box></geometry>
+        <material>
+          <ambient>0.10 0.24 0.70 1</ambient>
+          <diffuse>0.10 0.24 0.70 1</diffuse>
+        </material>
+      </visual>
+      <visual name="main_girder_rear">
+        <pose>4.0 0 8.4 0 0 0</pose>
+        <geometry><box><size>1.2 25.5 0.8</size></box></geometry>
+        <material>
+          <ambient>0.10 0.24 0.70 1</ambient>
+          <diffuse>0.10 0.24 0.70 1</diffuse>
+        </material>
+      </visual>
+      <visual name="top_crossbeam_left">
+        <pose>2.0 -11.5 8.7 0 0 0</pose>
+        <geometry><box><size>5.2 0.7 0.6</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="top_crossbeam_right">
+        <pose>2.0 11.5 8.7 0 0 0</pose>
+        <geometry><box><size>5.2 0.7 0.6</size></box></geometry>
+        <material>
+          <ambient>0.08 0.20 0.58 1</ambient>
+          <diffuse>0.08 0.20 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="trolley">
+        <pose>2.0 0 7.65 0 0 0</pose>
+        <geometry><box><size>2.2 2.8 0.7</size></box></geometry>
+        <material>
+          <ambient>0.08 0.48 0.18 1</ambient>
+          <diffuse>0.08 0.48 0.18 1</diffuse>
+        </material>
+      </visual>
+      <visual name="spreader">
+        <pose>2.0 0 5.9 0 0 0</pose>
+        <geometry><box><size>2.0 6.0 0.25</size></box></geometry>
+        <material>
+          <ambient>0.06 0.36 0.14 1</ambient>
+          <diffuse>0.06 0.36 0.14 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

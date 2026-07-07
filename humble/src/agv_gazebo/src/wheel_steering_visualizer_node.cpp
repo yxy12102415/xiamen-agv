@@ -16,11 +16,13 @@
 #endif
 #include <std_msgs/msg/float32.hpp>
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cmath>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace
 {
@@ -53,6 +55,26 @@ double yaw_from_pose(const geometry_msgs::msg::Pose & pose)
   const auto & q = pose.orientation;
   return std::atan2(
     2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+}
+
+std::pair<double, double> ackermann_left_right_steer(
+  const double axle_steer, const double equivalent_wheelbase, const double wheel_tread)
+{
+  const double abs_steer = std::abs(axle_steer);
+  if (abs_steer < 1.0e-6 || equivalent_wheelbase <= 1.0e-6 || wheel_tread <= 1.0e-6) {
+    return {axle_steer, axle_steer};
+  }
+
+  const double sign = std::copysign(1.0, axle_steer);
+  const double outer_steer = abs_steer;
+  const double outer_radius = equivalent_wheelbase / std::tan(outer_steer);
+  const double inner_radius = std::max(1.0e-3, outer_radius - wheel_tread);
+  const double inner_steer = std::atan(equivalent_wheelbase / inner_radius);
+
+  if (axle_steer > 0.0) {
+    return {sign * inner_steer, sign * outer_steer};
+  }
+  return {sign * outer_steer, sign * inner_steer};
 }
 
 #ifdef AGV_USE_IGN_TRANSPORT_FOR_POSE
@@ -91,6 +113,13 @@ public:
     left_y_ = declare_parameter<double>("left_y", wheel_tread_ * 0.5);
     right_y_ = declare_parameter<double>("right_y", -wheel_tread_ * 0.5);
     wheel_z_ = declare_parameter<double>("wheel_z", wheel_radius_);
+    enable_ackermann_wheel_angles_ = declare_parameter<bool>("enable_ackermann_wheel_angles", true);
+    // Back-calculated from the sheet's target inner/outer wheel angles using the current
+    // wheel tread: front 27.4 deg outer -> 33.0 deg inner, rear 22.6 deg outer -> 30.0 deg inner.
+    ackermann_front_wheelbase_ =
+      declare_parameter<double>("ackermann_front_wheelbase", 6.116611371515338);
+    ackermann_rear_wheelbase_ =
+      declare_parameter<double>("ackermann_rear_wheelbase", 3.5527407651152627);
     update_rate_ = declare_parameter<double>("update_rate", 30.0);
 
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
@@ -134,8 +163,17 @@ private:
     }};
 
     const double base_yaw = yaw_from_pose(odom_pose_);
+    const auto [front_left_steer, front_right_steer] = enable_ackermann_wheel_angles_
+      ? ackermann_left_right_steer(front_steer_, ackermann_front_wheelbase_, wheel_tread_)
+      : std::pair<double, double>{front_steer_, front_steer_};
+    const auto [rear_left_steer, rear_right_steer] = enable_ackermann_wheel_angles_
+      ? ackermann_left_right_steer(rear_steer_, ackermann_rear_wheelbase_, wheel_tread_)
+      : std::pair<double, double>{rear_steer_, rear_steer_};
+
     for (const auto & wheel : wheels) {
-      const double steer = wheel.front ? front_steer_ : rear_steer_;
+      const bool left = wheel.y > 0.0;
+      const double steer = wheel.front ? (left ? front_left_steer : front_right_steer)
+                                       : (left ? rear_left_steer : rear_right_steer);
       geometry_msgs::msg::Pose pose;
       pose.position.x =
         odom_pose_.position.x + std::cos(base_yaw) * wheel.x - std::sin(base_yaw) * wheel.y;
@@ -188,6 +226,9 @@ private:
   double left_y_;
   double right_y_;
   double wheel_z_;
+  bool enable_ackermann_wheel_angles_;
+  double ackermann_front_wheelbase_;
+  double ackermann_rear_wheelbase_;
   double update_rate_;
   double front_steer_ = 0.0;
   double rear_steer_ = 0.0;
