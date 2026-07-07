@@ -126,11 +126,59 @@ docker_args() {
   printf '%s\n' "${args[@]}"
 }
 
+container_id() {
+  docker ps -aq --filter "name=^/${CONTAINER_NAME}$" | head -n 1
+}
+
+container_is_running() {
+  local id="${1:-}"
+  [ -n "${id}" ] && docker inspect -f '{{.State.Running}}' "${id}" 2>/dev/null | grep -qx true
+}
+
+prepare_container_name() {
+  local id
+  id="$(container_id)"
+  if [ -z "${id}" ]; then
+    return
+  fi
+
+  if container_is_running "${id}"; then
+    return
+  fi
+
+  docker rm "${id}" >/dev/null
+}
+
+exec_in_running_container() {
+  local user="${1:-agv}"
+  shift || true
+
+  local id
+  id="$(container_id)"
+  if [ -z "${id}" ]; then
+    return 1
+  fi
+
+  if ! container_is_running "${id}"; then
+    return 1
+  fi
+
+  echo "[docker.sh] Reusing running container: ${CONTAINER_NAME}"
+  local exec_args=(exec)
+  if [ -t 0 ]; then
+    exec_args+=(-it)
+  else
+    exec_args+=(-i)
+  fi
+  docker "${exec_args[@]}" --user "${user}" -w "${CONTAINER_WS_DIR}" "${id}" "$@"
+}
+
 run_container() {
   local mode="${1:-shell}"
   local user="${2:-agv}"
   shift 2 || true
 
+  prepare_container_name
   mapfile -t args < <(docker_args "${mode}")
   docker run "${args[@]}" --user "${user}" "${IMAGE_NAME}" "$@"
 }
@@ -138,20 +186,26 @@ run_container() {
 case "${1:-shell}" in
   shell)
     require_docker "$@"
+    exec_in_running_container agv /bin/bash && exit 0
     run_container shell agv /bin/bash
     ;;
   gui)
     require_docker "$@"
+    exec_in_running_container agv /bin/bash && exit 0
     run_container gui agv /bin/bash
     ;;
   sim)
     shift || true
     require_docker sim "$@"
+    exec_in_running_container agv /bin/bash -lc './sim.sh "$@"' bash "$@" && exit 0
     run_container sim agv /bin/bash -lc './sim.sh "$@"' bash "$@"
     ;;
   build)
     shift || true
     require_docker build "$@"
+    exec_in_running_container agv /bin/bash -lc \
+      'source /opt/ros/galactic/setup.bash && colcon --log-base log_galactic build --symlink-install --build-base build_galactic --install-base install_galactic "$@"' \
+      bash "$@" && exit 0
     run_container shell agv /bin/bash -lc \
       'source /opt/ros/galactic/setup.bash && colcon --log-base log_galactic build --symlink-install --build-base build_galactic --install-base install_galactic "$@"' \
       bash "$@"
