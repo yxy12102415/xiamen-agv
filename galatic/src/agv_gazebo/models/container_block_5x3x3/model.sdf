@@ -1,0 +1,773 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="container_block_5x3x3">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="container_visual_01">
+        <pose>-2.4259 -25.6406 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_01">
+        <pose>-2.4500 -24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_02">
+        <pose>-2.4259 -25.6406 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_02">
+        <pose>-2.4500 -24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_03">
+        <pose>-2.4259 -25.6406 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_03">
+        <pose>-2.4500 -24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_04">
+        <pose>0.0241 -25.6406 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_04">
+        <pose>0.0000 -24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_05">
+        <pose>0.0241 -25.6406 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_05">
+        <pose>0.0000 -24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_06">
+        <pose>0.0241 -25.6406 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_06">
+        <pose>0.0000 -24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_07">
+        <pose>2.4741 -25.6406 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_07">
+        <pose>2.4500 -24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_08">
+        <pose>2.4741 -25.6406 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_08">
+        <pose>2.4500 -24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_09">
+        <pose>2.4741 -25.6406 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_09">
+        <pose>2.4500 -24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_10">
+        <pose>-2.4259 -13.4106 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_10">
+        <pose>-2.4500 -12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_11">
+        <pose>-2.4259 -13.4106 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_11">
+        <pose>-2.4500 -12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_12">
+        <pose>-2.4259 -13.4106 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_12">
+        <pose>-2.4500 -12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_13">
+        <pose>0.0241 -13.4106 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_13">
+        <pose>0.0000 -12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_14">
+        <pose>0.0241 -13.4106 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_14">
+        <pose>0.0000 -12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_15">
+        <pose>0.0241 -13.4106 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_15">
+        <pose>0.0000 -12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_16">
+        <pose>2.4741 -13.4106 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_16">
+        <pose>2.4500 -12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_17">
+        <pose>2.4741 -13.4106 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_17">
+        <pose>2.4500 -12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_18">
+        <pose>2.4741 -13.4106 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_18">
+        <pose>2.4500 -12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_19">
+        <pose>-2.4259 -1.1806 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_19">
+        <pose>-2.4500 0.0000 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_20">
+        <pose>-2.4259 -1.1806 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_20">
+        <pose>-2.4500 0.0000 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_21">
+        <pose>-2.4259 -1.1806 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_21">
+        <pose>-2.4500 0.0000 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_22">
+        <pose>0.0241 -1.1806 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_22">
+        <pose>0.0000 0.0000 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_23">
+        <pose>0.0241 -1.1806 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_23">
+        <pose>0.0000 0.0000 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_24">
+        <pose>0.0241 -1.1806 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_24">
+        <pose>0.0000 0.0000 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_25">
+        <pose>2.4741 -1.1806 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_25">
+        <pose>2.4500 0.0000 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_26">
+        <pose>2.4741 -1.1806 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_26">
+        <pose>2.4500 0.0000 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_27">
+        <pose>2.4741 -1.1806 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_27">
+        <pose>2.4500 0.0000 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_28">
+        <pose>-2.4259 11.0494 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_28">
+        <pose>-2.4500 12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_29">
+        <pose>-2.4259 11.0494 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_29">
+        <pose>-2.4500 12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_30">
+        <pose>-2.4259 11.0494 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_30">
+        <pose>-2.4500 12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_31">
+        <pose>0.0241 11.0494 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_31">
+        <pose>0.0000 12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_32">
+        <pose>0.0241 11.0494 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_32">
+        <pose>0.0000 12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_33">
+        <pose>0.0241 11.0494 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_33">
+        <pose>0.0000 12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_34">
+        <pose>2.4741 11.0494 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_34">
+        <pose>2.4500 12.2300 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_35">
+        <pose>2.4741 11.0494 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_35">
+        <pose>2.4500 12.2300 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_36">
+        <pose>2.4741 11.0494 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_36">
+        <pose>2.4500 12.2300 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_37">
+        <pose>-2.4259 23.2794 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_37">
+        <pose>-2.4500 24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_38">
+        <pose>-2.4259 23.2794 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_38">
+        <pose>-2.4500 24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_39">
+        <pose>-2.4259 23.2794 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_39">
+        <pose>-2.4500 24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_40">
+        <pose>0.0241 23.2794 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_40">
+        <pose>0.0000 24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_41">
+        <pose>0.0241 23.2794 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_41">
+        <pose>0.0000 24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_42">
+        <pose>0.0241 23.2794 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_42">
+        <pose>0.0000 24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_43">
+        <pose>2.4741 23.2794 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_43">
+        <pose>2.4500 24.4600 1.2950 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_44">
+        <pose>2.4741 23.2794 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_44">
+        <pose>2.4500 24.4600 3.8850 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="container_visual_45">
+        <pose>2.4741 23.2794 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_45">
+        <pose>2.4500 24.4600 6.4750 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

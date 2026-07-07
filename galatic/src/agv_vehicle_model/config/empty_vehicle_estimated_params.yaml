@@ -1,0 +1,122 @@
+# Empty IGV vehicle model parameters used by the Xiamen simulation.
+# Values in this file are estimates unless explicitly marked as "given".
+# The launch file currently mirrors these values for agv_two_axis_simulator_node.
+
+geometry:
+  length_m:
+    value: 15.0
+    source: given_table
+  width_m:
+    value: 2.98
+    source: given_table
+  wheel_radius_m:
+    value: 0.66
+    source: given_table_empty_unloaded_radius
+  wheel_tread_m:
+    value: 2.381384
+    source: estimated_from_igv_model
+  axle_positions_m:
+    axle1_x: 4.479714
+    axle2_x: 2.596727
+    axle3_x: -2.570058
+    axle4_x: -4.479289
+    source: estimated_from_igv_model
+
+mass_properties:
+  mass_kg:
+    value: 23000.0
+    source: given_table
+  center_of_gravity_height_m:
+    value: 0.8
+    source: estimated_empty_vehicle_low_platform
+  yaw_inertia_kgm2:
+    value: 432363.7513
+    source: estimated_uniform_rectangle_corrected_from_3d_geometry
+    note: "Uniform 15.0 x 2.98 m rectangle gives about 4.48e5 kg*m^2; current value uses a 0.965 correction."
+  axle_load_kg:
+    value: 5750.0
+    source: estimated_uniform_empty_load_distribution
+  wheel_load_kg:
+    value: 2875.0
+    source: estimated_uniform_empty_load_distribution
+  front_normal_load_n:
+    value: 112815.0
+    source: estimated_uniform_empty_load_distribution
+  rear_normal_load_n:
+    value: 112815.0
+    source: estimated_uniform_empty_load_distribution
+  axle_normal_load_n:
+    axle1: 56407.5
+    axle2: 56407.5
+    axle3: 56407.5
+    axle4: 56407.5
+    source: estimated_uniform_empty_load_distribution
+
+tire_model:
+  front_cornering_stiffness_n_rad:
+    value: 400000.0
+    source: estimated_heavy_industrial_tire_linear_region
+  rear_cornering_stiffness_n_rad:
+    value: 400000.0
+    source: estimated_heavy_industrial_tire_linear_region
+  axle_cornering_stiffness_n_rad:
+    axle1: 200000.0
+    axle2: 200000.0
+    axle3: 200000.0
+    axle4: 200000.0
+    source: estimated_even_split_from_front_rear
+  tire_friction_coefficient:
+    value: 0.8
+    source: estimated_dry_concrete_or_asphalt
+  rolling_resistance_coefficient:
+    value: 0.012
+    source: estimated_solid_industrial_tire_on_hard_surface
+  wheel_inertia_kgm2:
+    value: 67.0824
+    source: estimated_wheel_mass_and_radius
+
+actuators:
+  all_wheel_drive:
+    value: true
+    source: assumed_from_user_request
+  max_drive_accel_mps2:
+    value: 0.35
+    source: given_table
+  max_brake_decel_mps2:
+    value: 4.0
+    source: estimated_from_line_control_braking_requirement
+  steer_rate_limit_radps:
+    value: 0.261799
+    source: given_table_15_deg_per_sec
+  drive_delay_s:
+    value: 0.05
+    source: estimated_line_control_response
+  brake_delay_s:
+    value: 0.05
+    source: estimated_line_control_response
+  drive_time_constant_s:
+    value: 0.18
+    source: estimated_line_control_response
+  brake_time_constant_s:
+    value: 0.18
+    source: estimated_line_control_response
+  steer_delay_s:
+    value: 0.02
+    source: estimated_less_than_100ms_requirement
+  steer_time_constant_s:
+    value: 0.05
+    source: estimated_less_than_100ms_requirement
+  steer_dead_band_rad:
+    value: 0.005236
+    source: estimated_small_deadband_0p3deg
+
+aero:
+  aerodynamic_drag_coefficient:
+    value: 1.10
+    source: estimated_boxy_low_speed_vehicle
+  frontal_area_m2:
+    value: 7.936695
+    source: estimated_width_times_vehicle_height
+  air_density_kg_m3:
+    value: 1.225
+    source: standard_sea_level_air_density

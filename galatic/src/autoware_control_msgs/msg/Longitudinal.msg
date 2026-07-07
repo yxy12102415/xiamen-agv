@@ -1,0 +1,6 @@
+builtin_interfaces/Time stamp
+float32 velocity
+float32 acceleration
+float32 jerk
+bool is_defined_acceleration
+bool is_defined_jerk

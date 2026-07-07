@@ -1,0 +1,13 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v5.2.0)
+
+newmtl STS
+Kd 1 1 1
+map_Kd sts_single_texture_0001.png
+Ka 1 1 1
+Ks 0.899999976 0.899999976 0.899999976
+Ke 0 0 0
+Tf 0 0 0
+d 1
+Ns 2
+illum 2

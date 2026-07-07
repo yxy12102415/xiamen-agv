@@ -1,0 +1,81 @@
+VERSION "reference_agv_chassis_v0"
+
+NS_ :
+  NS_DESC_
+  CM_
+  BA_DEF_
+  BA_
+  VAL_
+
+BS_:
+
+BU_: ROS VCU STEER_ECU
+
+BO_ 384 AGV_CMD_MODE: 8 ROS
+ SG_ alive_counter : 0|8@1+ (1,0) [0|255] "" VCU
+ SG_ autonomous_enable : 8|1@1+ (1,0) [0|1] "" VCU
+ SG_ clear_fault : 9|1@1+ (1,0) [0|1] "" VCU
+ SG_ estop_reset : 10|1@1+ (1,0) [0|1] "" VCU
+ SG_ gear_cmd : 16|8@1+ (1,0) [0|3] "" VCU
+ SG_ steering_mode : 24|8@1+ (1,0) [0|3] "" VCU
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" VCU
+
+BO_ 385 AGV_CMD_MOTION: 8 ROS
+ SG_ target_velocity : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" VCU
+ SG_ target_acceleration : 16|16@1- (0.001,0) [-32.768|32.767] "m/s2" VCU
+ SG_ brake_cmd : 32|16@1+ (0.001,0) [0|1] "" VCU
+ SG_ alive_counter : 48|8@1+ (1,0) [0|255] "" VCU
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" VCU
+
+BO_ 386 AGV_CMD_STEER_AXLE12: 8 ROS
+ SG_ axle1_steer_cmd : 0|16@1- (0.0001,0) [-3.2768|3.2767] "rad" STEER_ECU
+ SG_ axle2_steer_cmd : 16|16@1- (0.0001,0) [-3.2768|3.2767] "rad" STEER_ECU
+ SG_ axle3_steer_cmd : 32|16@1- (0.0001,0) [-3.2768|3.2767] "rad" STEER_ECU
+ SG_ axle4_steer_cmd : 48|16@1- (0.0001,0) [-3.2768|3.2767] "rad" STEER_ECU
+
+BO_ 387 AGV_CMD_SAFETY: 8 ROS
+ SG_ requested_state : 0|8@1+ (1,0) [0|3] "" VCU
+ SG_ controlled_stop : 8|1@1+ (1,0) [0|1] "" VCU
+ SG_ emergency_stop : 9|1@1+ (1,0) [0|1] "" VCU
+ SG_ horn : 10|1@1+ (1,0) [0|1] "" VCU
+ SG_ lights : 16|8@1+ (1,0) [0|255] "" VCU
+ SG_ max_velocity_limit : 24|16@1+ (0.001,0) [0|65.535] "m/s" VCU
+ SG_ alive_counter : 48|8@1+ (1,0) [0|255] "" VCU
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" VCU
+
+BO_ 640 AGV_FB_STATUS: 8 VCU
+ SG_ autonomous_enabled : 0|1@1+ (1,0) [0|1] "" ROS
+ SG_ manual_override : 1|1@1+ (1,0) [0|1] "" ROS
+ SG_ emergency_stop_active : 2|1@1+ (1,0) [0|1] "" ROS
+ SG_ gear_actual : 8|8@1+ (1,0) [0|3] "" ROS
+ SG_ control_mode : 16|8@1+ (1,0) [0|3] "" ROS
+ SG_ fault_level : 24|8@1+ (1,0) [0|3] "" ROS
+ SG_ alive_counter : 48|8@1+ (1,0) [0|255] "" ROS
+ SG_ checksum : 56|8@1+ (1,0) [0|255] "" ROS
+
+BO_ 641 AGV_FB_MOTION: 8 VCU
+ SG_ actual_velocity : 0|16@1- (0.001,0) [-32.768|32.767] "m/s" ROS
+ SG_ actual_acceleration : 16|16@1- (0.001,0) [-32.768|32.767] "m/s2" ROS
+ SG_ actual_yaw_rate : 32|16@1- (0.0001,0) [-3.2768|3.2767] "rad/s" ROS
+ SG_ brake_actual : 48|16@1+ (0.001,0) [0|1] "" ROS
+
+BO_ 642 AGV_FB_STEER_AXLE12: 8 STEER_ECU
+ SG_ axle1_steer_actual : 0|16@1- (0.0001,0) [-3.2768|3.2767] "rad" ROS
+ SG_ axle2_steer_actual : 16|16@1- (0.0001,0) [-3.2768|3.2767] "rad" ROS
+ SG_ axle3_steer_actual : 32|16@1- (0.0001,0) [-3.2768|3.2767] "rad" ROS
+ SG_ axle4_steer_actual : 48|16@1- (0.0001,0) [-3.2768|3.2767] "rad" ROS
+
+BO_ 643 AGV_FB_FAULT: 8 VCU
+ SG_ fault_code_0 : 0|16@1+ (1,0) [0|65535] "" ROS
+ SG_ fault_code_1 : 16|16@1+ (1,0) [0|65535] "" ROS
+ SG_ fault_code_2 : 32|16@1+ (1,0) [0|65535] "" ROS
+ SG_ fault_code_3 : 48|16@1+ (1,0) [0|65535] "" ROS
+
+VAL_ 384 gear_cmd 0 "PARK" 1 "DRIVE" 2 "REVERSE" 3 "NEUTRAL";
+VAL_ 384 steering_mode 0 "FRONT_ONLY" 1 "CRAB" 2 "OPPOSITE_4WS" 3 "AXLE12";
+VAL_ 387 requested_state 0 "STOP" 1 "STANDBY" 2 "AUTO" 3 "MANUAL";
+VAL_ 640 gear_actual 0 "PARK" 1 "DRIVE" 2 "REVERSE" 3 "NEUTRAL";
+VAL_ 640 control_mode 0 "MANUAL" 1 "AUTO" 2 "AUTO_STEER_ONLY" 3 "AUTO_VELOCITY_ONLY";
+VAL_ 640 fault_level 0 "OK" 1 "WARN" 2 "FAULT" 3 "ESTOP";
+
+CM_ "Reference AGV chassis DBC for ROS2 vehicle_interface_node prototyping only. Not an official vendor protocol.";

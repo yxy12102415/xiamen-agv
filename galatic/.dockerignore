@@ -1,0 +1,14 @@
+.git
+.agents
+.codex
+.ccache
+.ccache-tmp
+build
+install
+log
+build_galactic
+install_galactic
+log_galactic
+*.log
+*.pyc
+__pycache__

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="xiamen_site_optimized">
+    <static>true</static>
+    <link name="map_link">
+      <visual name="xiamen_site_merged_visual">
+        <geometry>
+          <mesh>
+            <uri>model://xiamen_site_optimized/meshes/xiamen_site_merged.obj</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="container_stack_4">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="container_visual_1">
+        <pose>0.0241 -1.1806 1.1215 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name="container_visual_2">
+        <pose>0.0241 -1.1806 3.7115 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name="container_visual_3">
+        <pose>0.0241 -1.1806 6.3015 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name="container_visual_4">
+        <pose>0.0241 -1.1806 8.8915 1.5708 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://container_multi/meshes/container_multi.obj</uri>
+            <scale>0.01 0.01 0.01</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="container_collision_1">
+        <pose>0 0 1.2955 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="container_collision_2">
+        <pose>0 0 3.8855 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="container_collision_3">
+        <pose>0 0 6.4755 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name="container_collision_4">
+        <pose>0 0 9.0655 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.45 12.23 2.59</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
