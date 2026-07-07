@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <model name="container_lite">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="container_visual">
+        <pose>0 0 1.295 0 0 0</pose>
+        <geometry><box><size>12.23 2.45 2.59</size></box></geometry>
+        <material><ambient>0.55 0.12 0.10 1</ambient><diffuse>0.55 0.12 0.10 1</diffuse></material>
+      </visual>
+      <collision name="container_collision">
+        <pose>0 0 1.295 0 0 0</pose>
+        <geometry><box><size>12.23 2.45 2.59</size></box></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

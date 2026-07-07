@@ -68,16 +68,17 @@ def ignition_compat_paths(world_path, models_path):
         dst.write(world)
 
     patched_models_path = os.path.join(tempfile.gettempdir(), "agv_galactic_models")
-    patched_model_path = os.path.join(patched_models_path, "agv_with_lidars")
-    source_model_path = os.path.join(models_path, "agv_with_lidars")
-    if os.path.exists(patched_model_path):
-        shutil.rmtree(patched_model_path)
-    shutil.copytree(source_model_path, patched_model_path)
-    model_sdf_path = os.path.join(patched_model_path, "model.sdf")
-    with open(model_sdf_path, "r", encoding="utf-8") as src:
-        model = src.read().replace('<sdf version="1.9">', '<sdf version="1.8">')
-    with open(model_sdf_path, "w", encoding="utf-8") as dst:
-        dst.write(model)
+    if os.path.exists(patched_models_path):
+        shutil.rmtree(patched_models_path)
+    shutil.copytree(models_path, patched_models_path)
+    for root, _, files in os.walk(patched_models_path):
+        if "model.sdf" not in files:
+            continue
+        model_sdf_path = os.path.join(root, "model.sdf")
+        with open(model_sdf_path, "r", encoding="utf-8") as src:
+            model = src.read().replace('<sdf version="1.9">', '<sdf version="1.8">')
+        with open(model_sdf_path, "w", encoding="utf-8") as dst:
+            dst.write(model)
 
     return patched_path, os.pathsep.join([patched_models_path, models_path])
 
@@ -87,7 +88,12 @@ def generate_launch_description():
     projector_info_path = LaunchConfiguration("projector_info_path")
     pkg_share = get_package_share_directory("agv_gazebo")
     models_path = os.path.join(pkg_share, "models")
-    world_path = os.path.join(pkg_share, "worlds", "xiamen_empty.sdf")
+    world_file = (
+        "xiamen_empty_galactic_lite.sdf"
+        if os.environ.get("AGV_GALACTIC_LITE_WORLD", "0") == "1"
+        else "xiamen_empty.sdf"
+    )
+    world_path = os.path.join(pkg_share, "worlds", world_file)
     initial_x = LaunchConfiguration("initial_x")
     initial_y = LaunchConfiguration("initial_y")
     initial_yaw = LaunchConfiguration("initial_yaw")
@@ -347,13 +353,13 @@ def generate_launch_description():
             SetEnvironmentVariable(name="IGN_PARTITION", value="agv_sim"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(gz_launch),
-                launch_arguments={gazebo_packages["sim_args"]: ["-r -v 4 ", world_path]}.items(),
+                launch_arguments={gazebo_packages["sim_args"]: ["-r -v 2 ", world_path]}.items(),
                 condition=IfCondition(use_gazebo_gui),
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(gz_launch),
                 launch_arguments={
-                    gazebo_packages["sim_args"]: ["-r -s -v 4 ", world_path]
+                    gazebo_packages["sim_args"]: ["-r -s -v 2 ", world_path]
                 }.items(),
                 condition=UnlessCondition(use_gazebo_gui),
             ),

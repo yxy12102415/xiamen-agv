@@ -25,6 +25,7 @@ INSTALL_BASE="${INSTALL_BASE:-${SCRIPT_DIR}/install_galactic}"
 LOG_BASE="${LOG_BASE:-${SCRIPT_DIR}/log_galactic}"
 SETUP_FILE="${INSTALL_BASE}/setup.bash"
 WORLD_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
+LITE_WORLD_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty_galactic_lite.sdf"
 
 source /opt/ros/galactic/setup.bash
 
@@ -41,8 +42,8 @@ if [ ! -f "${SETUP_FILE}" ]; then
   exit 1
 fi
 
-if pgrep -f "ign gazebo.*${WORLD_PATH}" >/dev/null; then
-  pkill -9 -f "ign gazebo.*${WORLD_PATH}" || true
+if pgrep -f "ign gazebo.*xiamen_empty" >/dev/null; then
+  pkill -9 -f "ign gazebo.*xiamen_empty" || true
   sleep 1
 fi
 if pgrep -f "^ign gazebo server" >/dev/null; then
@@ -58,45 +59,110 @@ source "${SETUP_FILE}" 2>/tmp/agv_sim_setup_warnings.log
 
 MODE="${1:-}"
 case "${MODE}" in
-  map|scene)
+  map|scene|full-map)
     shift
     export GZ_SIM_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${GZ_SIM_RESOURCE_PATH:-}"
     export IGN_GAZEBO_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${IGN_GAZEBO_RESOURCE_PATH:-}"
     exec ign gazebo -r -v 4 "${WORLD_PATH}" "$@"
     ;;
+  lite|fast)
+    shift
+    export AGV_GALACTIC_LITE_WORLD=1
+    exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
+      use_autoware_map:=false \
+      use_standalone_map:=false \
+      use_rviz:=false \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=false \
+      enable_centerline_trajectory:=false \
+      enable_mpc:=false \
+      enable_vehicle_interface:=false \
+      "$@"
+    ;;
+  lite-map|fast-map)
+    shift
+    export GZ_SIM_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${GZ_SIM_RESOURCE_PATH:-}"
+    export IGN_GAZEBO_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${IGN_GAZEBO_RESOURCE_PATH:-}"
+    exec ign gazebo -r -v 2 "${LITE_WORLD_PATH}" "$@"
+    ;;
   no-control)
     shift
+    export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
+      use_standalone_map:=false \
       use_rviz:=false \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=false \
+      enable_centerline_trajectory:=false \
+      enable_mpc:=false \
+      enable_vehicle_interface:=false \
+      "$@"
+    ;;
+  full|full-rviz)
+    shift
+    unset AGV_GALACTIC_LITE_WORLD
+    exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
+      use_autoware_map:=false \
+      use_rviz:=true \
+      enable_lidar_topics:=true \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=true \
       enable_mpc:=false \
       "$@"
     ;;
-  rviz|full)
+  rviz)
     shift
+    export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
+      use_standalone_map:=false \
+      use_gazebo_gui:=false \
       use_rviz:=true \
-      enable_centerline_trajectory:=true \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=false \
+      enable_centerline_trajectory:=false \
       enable_mpc:=false \
+      enable_vehicle_interface:=false \
       "$@"
     ;;
-  control|full-control)
+  control)
     shift
+    export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
+      use_standalone_map:=true \
+      use_rviz:=false \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=false \
+      enable_centerline_trajectory:=true \
+      enable_mpc:=true \
+      "$@"
+    ;;
+  full-control)
+    shift
+    unset AGV_GALACTIC_LITE_WORLD
+    exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
+      use_autoware_map:=false \
+      use_standalone_map:=true \
       use_rviz:=true \
+      enable_lidar_topics:=true \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=true \
       enable_mpc:=true \
       "$@"
     ;;
   *)
+    export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
-      use_rviz:=true \
-      enable_centerline_trajectory:=true \
+      use_standalone_map:=false \
+      use_rviz:=false \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=false \
+      enable_centerline_trajectory:=false \
       enable_mpc:=false \
+      enable_vehicle_interface:=false \
       "$@"
     ;;
 esac
