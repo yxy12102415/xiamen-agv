@@ -86,7 +86,6 @@ docker_args() {
 
   local args=(
     --rm
-    -it
     --name "${CONTAINER_NAME}"
     --net host
     --ipc host
@@ -98,6 +97,12 @@ docker_args() {
     -v "${PROJECT_DIR}:${CONTAINER_PROJECT_DIR}:rw"
     -w "${CONTAINER_WS_DIR}"
   )
+
+  if [ -t 0 ]; then
+    args+=(-it)
+  else
+    args+=(-i)
+  fi
 
   if [ "${mode}" = "gui" ] || [ "${mode}" = "sim" ]; then
     if [ -n "${display}" ]; then
@@ -148,7 +153,7 @@ case "${1:-shell}" in
     shift || true
     require_docker build "$@"
     run_container shell agv /bin/bash -lc \
-      'source /opt/ros/galactic/setup.bash && colcon build --symlink-install --build-base build_galactic --install-base install_galactic --log-base log_galactic "$@"' \
+      'source /opt/ros/galactic/setup.bash && colcon --log-base log_galactic build --symlink-install --build-base build_galactic --install-base install_galactic "$@"' \
       bash "$@"
     ;;
   root)

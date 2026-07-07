@@ -8,6 +8,9 @@ humble/log/
 galatic/build/
 galatic/install/
 galatic/log/
+galatic/build_galactic/
+galatic/install_galactic/
+galatic/log_galactic/
 
 # Python/cache/editor files
 __pycache__/

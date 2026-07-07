@@ -20,7 +20,27 @@ enable_nvidia_offload() {
 
 enable_nvidia_offload
 
-WORLD_PATH="${SCRIPT_DIR}/install/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
+BUILD_BASE="${BUILD_BASE:-${SCRIPT_DIR}/build_galactic}"
+INSTALL_BASE="${INSTALL_BASE:-${SCRIPT_DIR}/install_galactic}"
+LOG_BASE="${LOG_BASE:-${SCRIPT_DIR}/log_galactic}"
+SETUP_FILE="${INSTALL_BASE}/setup.bash"
+WORLD_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
+
+source /opt/ros/galactic/setup.bash
+
+if [ ! -f "${SETUP_FILE}" ]; then
+  echo "[sim.sh] Galactic workspace is not built yet; running colcon build..."
+  colcon --log-base "${LOG_BASE}" build \
+    --symlink-install \
+    --build-base "${BUILD_BASE}" \
+    --install-base "${INSTALL_BASE}"
+fi
+
+if [ ! -f "${SETUP_FILE}" ]; then
+  echo "[sim.sh] Build finished but setup file was not found: ${SETUP_FILE}" >&2
+  exit 1
+fi
+
 if pgrep -f "ign gazebo.*${WORLD_PATH}" >/dev/null; then
   pkill -9 -f "ign gazebo.*${WORLD_PATH}" || true
   sleep 1
@@ -34,15 +54,14 @@ pkill -TERM -f "pointcloud_frame_republisher_node" 2>/dev/null || true
 pkill -TERM -f "parameter_bridge.*sensing/lidar" 2>/dev/null || true
 sleep 0.5
 
-source /opt/ros/galactic/setup.bash
-source "${SCRIPT_DIR}/install/setup.bash" 2>/tmp/agv_sim_setup_warnings.log
+source "${SETUP_FILE}" 2>/tmp/agv_sim_setup_warnings.log
 
 MODE="${1:-}"
 case "${MODE}" in
   map|scene)
     shift
-    export GZ_SIM_RESOURCE_PATH="${SCRIPT_DIR}/install/agv_gazebo/share/agv_gazebo/models:${GZ_SIM_RESOURCE_PATH:-}"
-    export IGN_GAZEBO_RESOURCE_PATH="${SCRIPT_DIR}/install/agv_gazebo/share/agv_gazebo/models:${IGN_GAZEBO_RESOURCE_PATH:-}"
+    export GZ_SIM_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${GZ_SIM_RESOURCE_PATH:-}"
+    export IGN_GAZEBO_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${IGN_GAZEBO_RESOURCE_PATH:-}"
     exec ign gazebo -r -v 4 "${WORLD_PATH}" "$@"
     ;;
   no-control)
