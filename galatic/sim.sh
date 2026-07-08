@@ -71,7 +71,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
-      use_gazebo_gui:=false \
+      use_gazebo_gui:=true \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -86,7 +86,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
-      use_gazebo_gui:=false \
+      use_gazebo_gui:=true \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -107,7 +107,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
-      use_gazebo_gui:=false \
+      use_gazebo_gui:=true \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -149,6 +149,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
+      use_gazebo_gui:=true \
       use_rviz:=false \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -162,7 +163,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
-      use_gazebo_gui:=false \
+      use_gazebo_gui:=true \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -175,7 +176,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
-      use_gazebo_gui:=false \
+      use_gazebo_gui:=true \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \

@@ -63,7 +63,7 @@ Visualization Manager:
       Enabled: true
       Name: Trajectory Centerline
       Namespaces:
-        lanelet_trajectory_centerlines: true
+        lanelet_trajectory_centerlines: false
         mpc_route: true
       Topic:
         Depth: 5
