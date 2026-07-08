@@ -61,7 +61,7 @@
     </model>
 
     <include>
-      <uri>model://xiamen_site</uri>
+      <uri>model://xiamen_site_optimized</uri>
       <name>xiamen_site</name>
     </include>
 
