@@ -98,6 +98,20 @@ docker_args() {
     -w "${CONTAINER_WS_DIR}"
   )
 
+  if [ -d /dev/dri ]; then
+    args+=(--device /dev/dri)
+    if getent group video >/dev/null; then
+      args+=(--group-add "$(getent group video | cut -d: -f3)")
+    fi
+    if getent group render >/dev/null; then
+      args+=(--group-add "$(getent group render | cut -d: -f3)")
+    fi
+    args+=(
+      -e LIBGL_DRI3_DISABLE="${LIBGL_DRI3_DISABLE:-0}"
+      -e MESA_LOADER_DRIVER_OVERRIDE="${MESA_LOADER_DRIVER_OVERRIDE:-radeonsi}"
+    )
+  fi
+
   if [ -t 0 ]; then
     args+=(-it)
   else

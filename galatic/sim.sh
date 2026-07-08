@@ -70,9 +70,9 @@ case "${MODE}" in
     export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
-      use_standalone_map:=false \
+      use_standalone_map:=true \
       use_rviz:=true \
-      enable_lidar_topics:=false \
+      enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
@@ -90,9 +90,9 @@ case "${MODE}" in
     export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
-      use_standalone_map:=false \
+      use_standalone_map:=true \
       use_rviz:=true \
-      enable_lidar_topics:=false \
+      enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
@@ -156,9 +156,9 @@ case "${MODE}" in
     export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
-      use_standalone_map:=false \
+      use_standalone_map:=true \
       use_rviz:=true \
-      enable_lidar_topics:=false \
+      enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
