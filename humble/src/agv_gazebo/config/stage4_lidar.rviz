@@ -61,9 +61,9 @@ Visualization Manager:
       Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: PID Centerline
+      Name: Trajectory Centerline
       Namespaces:
-        lanelet_trajectory_centerlines: false
+        lanelet_trajectory_centerlines: true
         mpc_route: true
       Topic:
         Depth: 5

@@ -74,7 +74,7 @@ case "${MODE}" in
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
-      enable_centerline_trajectory:=false \
+      enable_centerline_trajectory:=true \
       enable_mpc:=false \
       enable_vehicle_interface:=false \
       "$@"
@@ -94,7 +94,7 @@ case "${MODE}" in
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
-      enable_centerline_trajectory:=false \
+      enable_centerline_trajectory:=true \
       enable_mpc:=false \
       enable_vehicle_interface:=false \
       "$@"
@@ -160,7 +160,7 @@ case "${MODE}" in
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
-      enable_centerline_trajectory:=false \
+      enable_centerline_trajectory:=true \
       enable_mpc:=false \
       enable_vehicle_interface:=false \
       "$@"
