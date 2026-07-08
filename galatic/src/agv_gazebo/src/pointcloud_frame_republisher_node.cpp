@@ -19,7 +19,7 @@ public:
     z_offset_ = declare_parameter<double>("z_offset", 0.0);
     use_latest_tf_ = declare_parameter<bool>("use_latest_tf", true);
 
-    const auto input_qos = rclcpp::QoS{1};
+    const auto input_qos = rclcpp::SensorDataQoS().keep_last(1);
     const auto output_qos = rclcpp::SensorDataQoS().keep_last(1);
     pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(output_topic_, output_qos);
     sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(

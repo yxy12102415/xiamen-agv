@@ -370,22 +370,24 @@ def generate_launch_description():
                 output="screen",
                 arguments=system_bridges,
             ),
-            Node(
-                package=gazebo_packages["bridge_package"],
-                executable="parameter_bridge",
-                name="agv_lidar_bridge",
-                output="screen",
-                arguments=lidar_bridges,
-                remappings=[
-                    ("/sensing/lidar/fl_lidar_1/points", "/sim/lidar/fl_lidar_1_raw"),
-                    ("/sensing/lidar/fr_lidar_1/points", "/sim/lidar/fr_lidar_1_raw"),
-                    ("/sensing/lidar/rl_lidar_1/points", "/sim/lidar/rl_lidar_1_raw"),
-                    ("/sensing/lidar/rr_lidar_1/points", "/sim/lidar/rr_lidar_1_raw"),
-                    ("/sensing/lidar/fl_lidar_2/points", "/sim/lidar/fl_lidar_2_raw"),
-                    ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw"),
-                ],
-                condition=IfCondition(enable_lidar_topics),
-            ),
+            *([
+                Node(
+                    package=gazebo_packages["bridge_package"],
+                    executable="parameter_bridge",
+                    name="agv_lidar_bridge",
+                    output="screen",
+                    arguments=lidar_bridges,
+                    remappings=[
+                        ("/sensing/lidar/fl_lidar_1/points", "/sim/lidar/fl_lidar_1_raw"),
+                        ("/sensing/lidar/fr_lidar_1/points", "/sim/lidar/fr_lidar_1_raw"),
+                        ("/sensing/lidar/rl_lidar_1/points", "/sim/lidar/rl_lidar_1_raw"),
+                        ("/sensing/lidar/rr_lidar_1/points", "/sim/lidar/rr_lidar_1_raw"),
+                        ("/sensing/lidar/fl_lidar_2/points", "/sim/lidar/fl_lidar_2_raw"),
+                        ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw"),
+                    ],
+                    condition=IfCondition(enable_lidar_topics),
+                )
+            ] if gazebo_packages["supports_service_bridge"] else []),
             Node(
                 package=gazebo_packages["bridge_package"],
                 executable="parameter_bridge",
