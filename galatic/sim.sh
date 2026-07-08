@@ -65,12 +65,28 @@ case "${MODE}" in
     export IGN_GAZEBO_RESOURCE_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/models:${IGN_GAZEBO_RESOURCE_PATH:-}"
     exec ign gazebo -r -v 4 "${WORLD_PATH}" "$@"
     ;;
+  light|map-rviz)
+    shift
+    export AGV_GALACTIC_LITE_WORLD=1
+    exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
+      use_autoware_map:=false \
+      use_standalone_map:=true \
+      use_gazebo_gui:=false \
+      use_rviz:=true \
+      enable_lidar_topics:=false \
+      enable_dynamic_obstacles:=true \
+      enable_centerline_trajectory:=true \
+      enable_mpc:=false \
+      enable_vehicle_interface:=false \
+      "$@"
+    ;;
   lite|fast)
     shift
     export AGV_GALACTIC_LITE_WORLD=1
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
+      use_gazebo_gui:=false \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -91,6 +107,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
+      use_gazebo_gui:=false \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -145,6 +162,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
+      use_gazebo_gui:=false \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
@@ -157,6 +175,7 @@ case "${MODE}" in
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
+      use_gazebo_gui:=false \
       use_rviz:=true \
       enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
