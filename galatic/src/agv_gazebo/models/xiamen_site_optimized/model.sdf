@@ -4,7 +4,6 @@
     <static>true</static>
     <link name="map_link">
       <visual name="xiamen_site_merged_visual">
-        <visibility_flags>2</visibility_flags>
         <geometry>
           <mesh>
             <uri>model://xiamen_site_optimized/meshes/xiamen_site_merged.obj</uri>
