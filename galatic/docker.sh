@@ -16,6 +16,7 @@ Usage:
   $0 gui                Enter the Galactic container with X11 enabled
   $0 sim [args...]      Run ./sim.sh inside the Galactic container
   $0 build [args...]    Build the galatic workspace inside the container
+  $0 gpu-check          Check NVIDIA Docker GPU access
   $0 root               Enter the container as root
   $0 clean              Remove the named container if it exists
 
@@ -29,6 +30,7 @@ Examples:
   ./docker.sh sim
   ./docker.sh sim control
   ./docker.sh build --packages-select agv_gazebo agv_vehicle_model
+  ./docker.sh gpu-check
 EOF
 }
 
@@ -79,6 +81,59 @@ EOF
   fi
 }
 
+nvidia_runtime_available() {
+  docker info 2>/dev/null | grep -Eiq 'Runtimes:.*nvidia|nvidia.*Runtimes:'
+}
+
+print_gpu_help() {
+  cat <<EOF
+NVIDIA GPU is visible on the host, but Docker cannot pass it into containers yet.
+
+Install and configure NVIDIA Container Toolkit on the host:
+
+  curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \\
+    sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+  curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \\
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \\
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+  sudo apt-get update
+  sudo apt-get install -y nvidia-container-toolkit
+  sudo nvidia-ctk runtime configure --runtime=docker
+  sudo systemctl restart docker
+
+Then verify:
+
+  ./docker.sh gpu-check
+
+After gpu-check passes, ./docker.sh sim and ./sim.sh will automatically add --gpus all.
+EOF
+}
+
+gpu_check() {
+  require_docker "$@"
+
+  echo "[gpu-check] Host NVIDIA:"
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+  else
+    echo "  nvidia-smi not found on host"
+  fi
+
+  echo "[gpu-check] Docker runtimes:"
+  docker info 2>/dev/null | sed -n '/Runtimes:/,/Default Runtime/p'
+
+  if ! nvidia_runtime_available; then
+    echo
+    print_gpu_help
+    exit 1
+  fi
+
+  echo "[gpu-check] Testing --gpus all with the Galactic image:"
+  docker run --rm --gpus all "${IMAGE_NAME}" nvidia-smi
+}
+
 docker_args() {
   local mode="${1:-shell}"
   local display="${DISPLAY:-}"
@@ -98,7 +153,7 @@ docker_args() {
     -w "${CONTAINER_WS_DIR}"
   )
 
-  if docker info 2>/dev/null | grep -Eiq 'Runtimes:.*nvidia|nvidia.*Runtimes:'; then
+  if nvidia_runtime_available; then
     args+=(
       --gpus all
       -e NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}"
@@ -236,6 +291,9 @@ case "${1:-shell}" in
     run_container shell agv /bin/bash -lc \
       'source /opt/ros/galactic/setup.bash && colcon --log-base log_galactic build --symlink-install --build-base build_galactic --install-base install_galactic "$@"' \
       bash "$@"
+    ;;
+  gpu-check)
+    gpu_check "$@"
     ;;
   root)
     require_docker "$@"
