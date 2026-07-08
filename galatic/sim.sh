@@ -73,7 +73,7 @@ case "${MODE}" in
       use_standalone_map:=false \
       use_rviz:=false \
       enable_lidar_topics:=false \
-      enable_dynamic_obstacles:=false \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
       enable_vehicle_interface:=false \
@@ -93,7 +93,7 @@ case "${MODE}" in
       use_standalone_map:=false \
       use_rviz:=false \
       enable_lidar_topics:=false \
-      enable_dynamic_obstacles:=false \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
       enable_vehicle_interface:=false \
@@ -134,7 +134,7 @@ case "${MODE}" in
       use_standalone_map:=true \
       use_rviz:=false \
       enable_lidar_topics:=false \
-      enable_dynamic_obstacles:=false \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=true \
       enable_mpc:=true \
       "$@"
@@ -159,7 +159,7 @@ case "${MODE}" in
       use_standalone_map:=false \
       use_rviz:=false \
       enable_lidar_topics:=false \
-      enable_dynamic_obstacles:=false \
+      enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=false \
       enable_mpc:=false \
       enable_vehicle_interface:=false \

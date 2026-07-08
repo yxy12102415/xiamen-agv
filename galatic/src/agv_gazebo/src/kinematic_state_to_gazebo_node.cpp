@@ -15,6 +15,7 @@
 #include <ros_gz_interfaces/srv/set_entity_pose.hpp>
 #endif
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <memory>
@@ -70,6 +71,7 @@ public:
     initial_x_ = declare_parameter<double>("initial_x", 9.9991);
     initial_y_ = declare_parameter<double>("initial_y", 28.0013);
     initial_yaw_ = declare_parameter<double>("initial_yaw", -1.5708);
+    request_timeout_ms_ = declare_parameter<int>("request_timeout_ms", 100);
 
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
     client_ = create_client<gazebo_interfaces::srv::SetEntityPose>(service_name_);
@@ -133,7 +135,7 @@ private:
     const auto request = to_ign_pose(entity_name_, pose);
     ignition::msgs::Boolean response;
     bool result = false;
-    constexpr unsigned int timeout_ms = 10;
+    const auto timeout_ms = static_cast<unsigned int>(std::max(1, request_timeout_ms_));
     const bool executed = ign_node_.Request(service_name_, request, timeout_ms, response, result);
     if (!executed || !result || !response.data()) {
       RCLCPP_WARN_THROTTLE(
@@ -168,6 +170,7 @@ private:
   double initial_x_;
   double initial_y_;
   double initial_yaw_;
+  int request_timeout_ms_;
   bool request_in_flight_ = false;
   bool received_odom_ = false;
 

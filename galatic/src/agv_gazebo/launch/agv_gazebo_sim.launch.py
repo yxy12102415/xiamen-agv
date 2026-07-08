@@ -743,6 +743,7 @@ def generate_launch_description():
                         "initial_x": initial_x,
                         "initial_y": initial_y,
                         "initial_yaw": initial_yaw,
+                        "request_timeout_ms": 100,
                     }
                 ],
             ),
@@ -780,10 +781,12 @@ def generate_launch_description():
                 parameters=[
                     {
                         "service_name": "/world/xiamen_empty/set_pose",
-                        "update_rate": 20.0,
+                        "update_rate": 2.0,
                         "traffic_vehicle_speed": 1.5,
                         "pedestrian_speed": 0.8,
                         "yard_crane_speed": 1.2,
+                        "request_timeout_ms": 100,
+                        "start_delay_s": 6.0,
                     }
                 ],
                 condition=IfCondition(enable_dynamic_obstacles),
