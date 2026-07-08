@@ -73,7 +73,7 @@ case "${MODE}" in
       use_standalone_map:=true \
       use_gazebo_gui:=false \
       use_rviz:=true \
-      enable_lidar_topics:=false \
+      enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=true \
       enable_mpc:=false \
@@ -150,7 +150,7 @@ case "${MODE}" in
       use_autoware_map:=false \
       use_standalone_map:=true \
       use_rviz:=false \
-      enable_lidar_topics:=false \
+      enable_lidar_topics:=true \
       enable_dynamic_obstacles:=true \
       enable_centerline_trajectory:=true \
       enable_mpc:=true \

@@ -98,6 +98,19 @@ docker_args() {
     -w "${CONTAINER_WS_DIR}"
   )
 
+  if docker info 2>/dev/null | grep -Eiq 'Runtimes:.*nvidia|nvidia.*Runtimes:'; then
+    args+=(
+      --gpus all
+      -e NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}"
+      -e NVIDIA_DRIVER_CAPABILITIES="${NVIDIA_DRIVER_CAPABILITIES:-graphics,utility,compute}"
+      -e __NV_PRIME_RENDER_OFFLOAD=1
+      -e __GLX_VENDOR_LIBRARY_NAME=nvidia
+      -e __VK_LAYER_NV_optimus=NVIDIA_only
+    )
+  elif [ "${XIAMEN_AGV_FORCE_NVIDIA:-0}" = "1" ]; then
+    args+=(--gpus all)
+  fi
+
   if [ -d /dev/dri ]; then
     args+=(--device /dev/dri)
     if getent group video >/dev/null; then
