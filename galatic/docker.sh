@@ -138,6 +138,7 @@ docker_args() {
   local mode="${1:-shell}"
   local display="${DISPLAY:-}"
   local xauthority="${XAUTHORITY:-${HOME}/.Xauthority}"
+  local use_nvidia=0
 
   local args=(
     --rm
@@ -154,6 +155,7 @@ docker_args() {
   )
 
   if nvidia_runtime_available; then
+    use_nvidia=1
     args+=(
       --gpus all
       -e NVIDIA_VISIBLE_DEVICES="${NVIDIA_VISIBLE_DEVICES:-all}"
@@ -174,10 +176,10 @@ docker_args() {
     if getent group render >/dev/null; then
       args+=(--group-add "$(getent group render | cut -d: -f3)")
     fi
-    args+=(
-      -e LIBGL_DRI3_DISABLE="${LIBGL_DRI3_DISABLE:-0}"
-      -e MESA_LOADER_DRIVER_OVERRIDE="${MESA_LOADER_DRIVER_OVERRIDE:-radeonsi}"
-    )
+    args+=(-e LIBGL_DRI3_DISABLE="${LIBGL_DRI3_DISABLE:-0}")
+    if [ "${use_nvidia}" -eq 0 ]; then
+      args+=(-e MESA_LOADER_DRIVER_OVERRIDE="${MESA_LOADER_DRIVER_OVERRIDE:-radeonsi}")
+    fi
   fi
 
   if [ -t 0 ]; then

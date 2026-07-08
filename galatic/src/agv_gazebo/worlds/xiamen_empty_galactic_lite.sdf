@@ -8,6 +8,12 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
+    <physics name="fast_sensor_world" type="ignored">
+      <max_step_size>0.1</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>10</real_time_update_rate>
+    </physics>
+
     <gravity>0 0 -9.81</gravity>
     <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
     <atmosphere type="adiabatic"/>
@@ -61,30 +67,30 @@
     </model>
 
     <include>
-      <uri>model://xiamen_site</uri>
+      <uri>model://xiamen_site_optimized</uri>
       <name>xiamen_site</name>
     </include>
 
     <include>
-      <uri>model://quay_crane_sts_single</uri>
+      <uri>model://quay_crane_sts_lite</uri>
       <name>quay_crane_sts_1</name>
       <pose>52 -40 0 0 0 3.1416</pose>
     </include>
 
     <include>
-      <uri>model://quay_crane_sts_single</uri>
+      <uri>model://quay_crane_sts_lite</uri>
       <name>quay_crane_sts_2</name>
       <pose>148 -40 0 0 0 3.1416</pose>
     </include>
 
     <include>
-      <uri>model://quay_crane_sts_single</uri>
+      <uri>model://quay_crane_sts_lite</uri>
       <name>quay_crane_sts_3</name>
       <pose>244 -40 0 0 0 3.1416</pose>
     </include>
 
     <include>
-      <uri>model://quay_crane_sts_single</uri>
+      <uri>model://quay_crane_sts_lite</uri>
       <name>quay_crane_sts_4</name>
       <pose>340 -40 0 0 0 3.1416</pose>
     </include>

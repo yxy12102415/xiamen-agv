@@ -461,10 +461,11 @@
         <pose>7.346 1.560 1.25 0 0 0.785398</pose>
         <topic>/sensing/lidar/fl_lidar_1</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -490,10 +491,11 @@
         <pose>7.346 -1.560 1.25 0 0 -0.785398</pose>
         <topic>/sensing/lidar/fr_lidar_1</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -519,10 +521,11 @@
         <pose>-7.346 -1.560 1.25 0 0 -2.356194</pose>
         <topic>/sensing/lidar/rl_lidar_1</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -548,10 +551,11 @@
         <pose>-7.346 1.560 1.25 0 0 2.356194</pose>
         <topic>/sensing/lidar/rr_lidar_1</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -577,10 +581,11 @@
         <pose>4.55 1.52 2.45 0 0 0</pose>
         <topic>/sensing/lidar/fl_lidar_2</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -606,10 +611,11 @@
         <pose>-4.55 -1.52 2.45 0 0 3.141593</pose>
         <topic>/sensing/lidar/rr_lidar_2</topic>
         <update_rate>10</update_rate>
+        <visibility_mask>1</visibility_mask>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>240</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -634,7 +640,7 @@
       <sensor name="front_camera" type="camera">
         <pose>7.15 0 1.25 0 0 0</pose>
         <topic>/sensing/camera/front/image</topic>
-        <update_rate>15</update_rate>
+        <update_rate>1</update_rate>
         <camera>
           <horizontal_fov>1.396263</horizontal_fov>
           <image>
@@ -654,7 +660,7 @@
       <sensor name="rear_camera" type="camera">
         <pose>-7.15 0 1.25 0 0 3.141593</pose>
         <topic>/sensing/camera/rear/image</topic>
-        <update_rate>15</update_rate>
+        <update_rate>1</update_rate>
         <camera>
           <horizontal_fov>1.396263</horizontal_fov>
           <image>
