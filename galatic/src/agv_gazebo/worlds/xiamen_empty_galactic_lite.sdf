@@ -9,8 +9,10 @@
     </plugin>
 
     <gravity>0 0 -9.81</gravity>
+    <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
+    <atmosphere type="adiabatic"/>
     <scene>
-      <ambient>0.82 0.82 0.82 1.0</ambient>
+      <ambient>0.78 0.78 0.78 1.0</ambient>
       <background>0.86 0.90 0.96 1.0</background>
       <shadows>false</shadows>
     </scene>
@@ -18,15 +20,15 @@
     <light name="sun" type="directional">
       <pose>0 0 12 0 0 0</pose>
       <cast_shadows>false</cast_shadows>
-      <intensity>1.25</intensity>
+      <intensity>1.35</intensity>
       <diffuse>1.0 0.98 0.92 1.0</diffuse>
-      <specular>0.25 0.25 0.22 1.0</specular>
+      <specular>0.35 0.35 0.32 1.0</specular>
       <direction>-0.45 0.25 -0.86</direction>
     </light>
 
     <gui fullscreen="0">
       <camera name="user_camera">
-        <pose>190 145 230 0 1.08 0.78</pose>
+        <pose>205 148 260 0 1.15 0.78</pose>
         <view_controller>orbit</view_controller>
       </camera>
     </gui>
@@ -51,80 +53,208 @@
             </plane>
           </geometry>
           <material>
-            <ambient>0.45 0.49 0.46 1</ambient>
-            <diffuse>0.45 0.49 0.46 1</diffuse>
+            <ambient>0.35 0.38 0.36 1</ambient>
+            <diffuse>0.35 0.38 0.36 1</diffuse>
           </material>
         </visual>
       </link>
     </model>
 
-    <model name="lite_lane_reference">
-      <static>true</static>
-      <link name="link">
-        <visual name="upper_drive_area">
-          <pose>205 28 0.012 0 0 0</pose>
-          <geometry><box><size>410 54 0.02</size></box></geometry>
-          <material><ambient>0.33 0.36 0.34 1</ambient><diffuse>0.33 0.36 0.34 1</diffuse></material>
-        </visual>
-        <visual name="yard_area">
-          <pose>118 183 0.011 0 0 0</pose>
-          <geometry><box><size>280 235 0.02</size></box></geometry>
-          <material><ambient>0.43 0.47 0.44 1</ambient><diffuse>0.43 0.47 0.44 1</diffuse></material>
-        </visual>
-        <visual name="upper_lane_1"><pose>205 10 0.03 0 0 0</pose><geometry><box><size>410 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="upper_lane_2"><pose>205 28 0.03 0 0 0</pose><geometry><box><size>410 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="upper_lane_3"><pose>205 46 0.03 0 0 0</pose><geometry><box><size>410 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_1"><pose>118 80 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_2"><pose>118 110 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_3"><pose>118 140 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_4"><pose>118 168 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_5"><pose>118 198 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_6"><pose>118 226 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_7"><pose>118 256 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-        <visual name="yard_group_8"><pose>118 286 0.03 0 0 0</pose><geometry><box><size>280 0.35 0.02</size></box></geometry><material><ambient>0.92 0.92 0.86 1</ambient><diffuse>0.92 0.92 0.86 1</diffuse></material></visual>
-      </link>
-    </model>
+    <include>
+      <uri>model://xiamen_site</uri>
+      <name>xiamen_site</name>
+    </include>
 
-    <include><uri>model://quay_crane_sts_lite</uri><name>quay_crane_sts_1</name><pose>52 -40 0 0 0 3.1416</pose></include>
-    <include><uri>model://quay_crane_sts_lite</uri><name>quay_crane_sts_2</name><pose>148 -40 0 0 0 3.1416</pose></include>
-    <include><uri>model://quay_crane_sts_lite</uri><name>quay_crane_sts_3</name><pose>244 -40 0 0 0 3.1416</pose></include>
-    <include><uri>model://quay_crane_sts_lite</uri><name>quay_crane_sts_4</name><pose>340 -40 0 0 0 3.1416</pose></include>
+    <include>
+      <uri>model://quay_crane_sts_single</uri>
+      <name>quay_crane_sts_1</name>
+      <pose>52 -40 0 0 0 3.1416</pose>
+    </include>
 
-    <include><uri>model://container_lite</uri><name>quay_hanging_container_01</name><pose>52 10.0013 10.0 0 0 0</pose></include>
-    <include><uri>model://container_lite</uri><name>quay_hanging_container_02</name><pose>148 10.0013 10.0 0 0 0</pose></include>
-    <include><uri>model://container_lite</uri><name>quay_hanging_container_03</name><pose>244 10.0013 10.0 0 0 0</pose></include>
-    <include><uri>model://container_lite</uri><name>quay_hanging_container_04</name><pose>340 10.0013 10.0 0 0 0</pose></include>
+    <include>
+      <uri>model://quay_crane_sts_single</uri>
+      <name>quay_crane_sts_2</name>
+      <pose>148 -40 0 0 0 3.1416</pose>
+    </include>
 
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_01</name><pose>0 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_02</name><pose>45 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_03</name><pose>90 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_04</name><pose>135 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_05</name><pose>180 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_06</name><pose>225 80 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_07</name><pose>0 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_08</name><pose>45 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_09</name><pose>90 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_10</name><pose>135 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_11</name><pose>180 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_12</name><pose>225 110 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_13</name><pose>0 140 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_14</name><pose>45 140 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_15</name><pose>90 140 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_16</name><pose>135 140 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_17</name><pose>180 140 0 0 0 0</pose></include>
-    <include><uri>model://container_block_3x6x2</uri><name>yard_container_pile_18</name><pose>225 140 0 0 0 0</pose></include>
+    <include>
+      <uri>model://quay_crane_sts_single</uri>
+      <name>quay_crane_sts_3</name>
+      <pose>244 -40 0 0 0 3.1416</pose>
+    </include>
 
-    <include><uri>model://moving_vehicle_simple</uri><name>straight_moving_vehicle</name><pose>18 54 0 0 0 0</pose></include>
+    <include>
+      <uri>model://quay_crane_sts_single</uri>
+      <name>quay_crane_sts_4</name>
+      <pose>340 -40 0 0 0 3.1416</pose>
+    </include>
 
-    <include><uri>model://yard_crane</uri><name>yard_crane_A01</name><pose>248.0 80.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A02</name><pose>36.0 110.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A03</name><pose>181.0 140.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A04</name><pose>96.0 168.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A05</name><pose>267.0 198.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A06</name><pose>14.0 226.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A07</name><pose>223.0 256.0 0 0 0 0</pose></include>
-    <include><uri>model://yard_crane</uri><name>yard_crane_A08</name><pose>132.0 286.0 0 0 0 0</pose></include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_01</name>
+      <pose>52 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_02</name>
+      <pose>148 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_03</name>
+      <pose>244 10.0013 10.0 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>model://container_multi</uri>
+      <name>quay_hanging_container_04</name>
+      <pose>340 10.0013 10.0 0 0 1.5708</pose>
+    </include>
 
-    <include><uri>model://agv_with_lidars</uri><name>ego_agv</name></include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_01</name>
+      <pose>0 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_02</name>
+      <pose>45 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_03</name>
+      <pose>90 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_04</name>
+      <pose>135 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_05</name>
+      <pose>180 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_06</name>
+      <pose>225 80 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_07</name>
+      <pose>0 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_08</name>
+      <pose>45 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_09</name>
+      <pose>90 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_10</name>
+      <pose>135 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_11</name>
+      <pose>180 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_12</name>
+      <pose>225 110 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_13</name>
+      <pose>0 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_14</name>
+      <pose>45 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_15</name>
+      <pose>90 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_16</name>
+      <pose>135 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_17</name>
+      <pose>180 140 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://container_block_3x6x2</uri>
+      <name>yard_container_pile_18</name>
+      <pose>225 140 0 0 0 0</pose>
+    </include>
+
+
+
+
+    <include>
+      <uri>model://moving_vehicle_simple</uri>
+      <name>straight_moving_vehicle</name>
+      <pose>18 54 0 0 0 0</pose>
+    </include>
+
+
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A01</name>
+      <pose>248.0 80.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A02</name>
+      <pose>36.0 110.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A03</name>
+      <pose>181.0 140.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A04</name>
+      <pose>96.0 168.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A05</name>
+      <pose>267.0 198.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A06</name>
+      <pose>14.0 226.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A07</name>
+      <pose>223.0 256.0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://yard_crane</uri>
+      <name>yard_crane_A08</name>
+      <pose>132.0 286.0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://agv_with_lidars</uri>
+      <name>ego_agv</name>
+    </include>
   </world>
 </sdf>
