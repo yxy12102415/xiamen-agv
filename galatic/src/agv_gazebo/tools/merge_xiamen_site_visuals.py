@@ -10,7 +10,6 @@ SOURCE = ROOT / "models" / "xiamen_site" / "model.sdf"
 OUTPUT_DIR = ROOT / "models" / "xiamen_site_optimized" / "meshes"
 OBJ_PATH = OUTPUT_DIR / "xiamen_site_merged.obj"
 MTL_PATH = OUTPUT_DIR / "xiamen_site_merged.mtl"
-LANE_OUTPUT_DIR = ROOT / "models" / "xiamen_lane_overlay" / "meshes"
 
 
 def rotate(point, roll, pitch, yaw):
@@ -31,18 +30,14 @@ def main():
     vertices = []
     faces_by_material = {}
     colors = {}
-    lane_meshes = {
-        "white": {"vertices": [], "faces": []},
-        "yellow": {"vertices": [], "faces": []},
-    }
 
     cube_faces = (
-        (0, 3, 2), (0, 1, 3),
-        (4, 7, 5), (4, 6, 7),
-        (0, 5, 1), (0, 4, 5),
-        (2, 7, 6), (2, 3, 7),
-        (0, 6, 4), (0, 2, 6),
-        (1, 7, 3), (1, 5, 7),
+        (0, 2, 3), (0, 3, 1),
+        (4, 5, 7), (4, 7, 6),
+        (0, 1, 5), (0, 5, 4),
+        (2, 6, 7), (2, 7, 3),
+        (0, 4, 6), (0, 6, 2),
+        (1, 3, 7), (1, 7, 5),
     )
 
     for visual in root.findall(".//visual"):
@@ -51,10 +46,6 @@ def main():
             continue
 
         size = [float(value) for value in size_element.text.split()]
-        is_lane_marking = visual.get("name", "").startswith("line_")
-        if is_lane_marking:
-            width_index = 0 if size[0] < size[1] else 1
-            size[width_index] = max(size[width_index], 0.24)
         pose_element = visual.find("./pose")
         pose = [0.0] * 6 if pose_element is None else [
             float(value) for value in pose_element.text.split()
@@ -78,26 +69,15 @@ def main():
             (-hx, -hy, hz), (-hx, hy, hz),
             (hx, -hy, hz), (hx, hy, hz),
         )
-        transformed_corners = []
+        start = len(vertices) + 1
         for corner in corners:
             x, y, z = rotate(corner, pose[3], pose[4], pose[5])
-            transformed_corners.append((x + pose[0], y + pose[1], z + pose[2]))
+            vertices.append((x + pose[0], y + pose[1], z + pose[2]))
 
-        if is_lane_marking:
-            lane_key = "yellow" if diffuse[0] > 0.9 and diffuse[1] < 0.9 else "white"
-            lane_mesh = lane_meshes[lane_key]
-            lane_start = len(lane_mesh["vertices"]) + 1
-            lane_mesh["vertices"].extend(transformed_corners)
-            lane_mesh["faces"].extend(
-                tuple(lane_start + index for index in face) for face in cube_faces
-            )
-        else:
-            start = len(vertices) + 1
-            vertices.extend(transformed_corners)
-            material_faces = faces_by_material.setdefault(material_name, [])
-            material_faces.extend(
-                tuple(start + index for index in face) for face in cube_faces
-            )
+        material_faces = faces_by_material.setdefault(material_name, [])
+        material_faces.extend(
+            tuple(start + index for index in face) for face in cube_faces
+        )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     with OBJ_PATH.open("w", encoding="ascii") as obj:
@@ -118,37 +98,9 @@ def main():
             mtl.write("Ks 0.05 0.05 0.05\n")
             mtl.write("d 1.0\n\n")
 
-    LANE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    for lane_key, lane_mesh in lane_meshes.items():
-        lane_path = LANE_OUTPUT_DIR / f"xiamen_lanes_{lane_key}.obj"
-        material_name = f"lane_{lane_key}"
-        with lane_path.open("w", encoding="ascii") as obj:
-            obj.write(f"mtllib xiamen_lanes_{lane_key}.mtl\n")
-            obj.write(f"o xiamen_lanes_{lane_key}\n")
-            for x, y, z in lane_mesh["vertices"]:
-                obj.write(f"v {x:.6f} {y:.6f} {z:.6f}\n")
-            obj.write(f"usemtl {material_name}\n")
-            for a, b, c in lane_mesh["faces"]:
-                obj.write(f"f {a} {b} {c}\n")
-        color = (0.95, 0.84, 0.22) if lane_key == "yellow" else (0.95, 0.95, 0.86)
-        material_path = LANE_OUTPUT_DIR / f"xiamen_lanes_{lane_key}.mtl"
-        with material_path.open("w", encoding="ascii") as mtl:
-            mtl.write(f"newmtl {material_name}\n")
-            mtl.write(f"Ka {color[0]:.3f} {color[1]:.3f} {color[2]:.3f}\n")
-            mtl.write(f"Kd {color[0]:.3f} {color[1]:.3f} {color[2]:.3f}\n")
-            mtl.write("Ks 0.05 0.05 0.05\n")
-            mtl.write("d 1.0\n")
-
     print(
         f"Merged {len(vertices) // 8} visuals into {OBJ_PATH} "
         f"({len(vertices)} vertices)."
-    )
-    print(
-        "Merged lane visuals into "
-        + ", ".join(
-            f"{key}={len(mesh['vertices']) // 8}" for key, mesh in lane_meshes.items()
-        )
-        + "."
     )
 
 
