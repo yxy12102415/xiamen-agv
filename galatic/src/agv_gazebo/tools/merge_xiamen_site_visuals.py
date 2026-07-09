@@ -10,6 +10,7 @@ SOURCE = ROOT / "models" / "xiamen_site" / "model.sdf"
 OUTPUT_DIR = ROOT / "models" / "xiamen_site_optimized" / "meshes"
 OBJ_PATH = OUTPUT_DIR / "xiamen_site_merged.obj"
 MTL_PATH = OUTPUT_DIR / "xiamen_site_merged.mtl"
+LANE_OUTPUT_DIR = ROOT / "models" / "xiamen_lane_overlay" / "meshes"
 
 
 def rotate(point, roll, pitch, yaw):
@@ -30,6 +31,10 @@ def main():
     vertices = []
     faces_by_material = {}
     colors = {}
+    lane_meshes = {
+        "white": {"vertices": [], "faces": []},
+        "yellow": {"vertices": [], "faces": []},
+    }
 
     cube_faces = (
         (0, 2, 3), (0, 3, 1),
@@ -79,6 +84,17 @@ def main():
             tuple(start + index for index in face) for face in cube_faces
         )
 
+        if visual.get("name", "").startswith("line_"):
+            lane_key = "yellow" if diffuse[0] > 0.9 and diffuse[1] < 0.9 else "white"
+            lane_mesh = lane_meshes[lane_key]
+            lane_start = len(lane_mesh["vertices"]) + 1
+            for corner in corners:
+                x, y, z = rotate(corner, pose[3], pose[4], pose[5])
+                lane_mesh["vertices"].append((x + pose[0], y + pose[1], z + pose[2]))
+            lane_mesh["faces"].extend(
+                tuple(lane_start + index for index in face) for face in cube_faces
+            )
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     with OBJ_PATH.open("w", encoding="ascii") as obj:
         obj.write("mtllib xiamen_site_merged.mtl\n")
@@ -98,9 +114,26 @@ def main():
             mtl.write("Ks 0.05 0.05 0.05\n")
             mtl.write("d 1.0\n\n")
 
+    LANE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    for lane_key, lane_mesh in lane_meshes.items():
+        lane_path = LANE_OUTPUT_DIR / f"xiamen_lanes_{lane_key}.obj"
+        with lane_path.open("w", encoding="ascii") as obj:
+            obj.write(f"o xiamen_lanes_{lane_key}\n")
+            for x, y, z in lane_mesh["vertices"]:
+                obj.write(f"v {x:.6f} {y:.6f} {z:.6f}\n")
+            for a, b, c in lane_mesh["faces"]:
+                obj.write(f"f {a} {b} {c}\n")
+
     print(
         f"Merged {len(vertices) // 8} visuals into {OBJ_PATH} "
         f"({len(vertices)} vertices)."
+    )
+    print(
+        "Merged lane visuals into "
+        + ", ".join(
+            f"{key}={len(mesh['vertices']) // 8}" for key, mesh in lane_meshes.items()
+        )
+        + "."
     )
 
 

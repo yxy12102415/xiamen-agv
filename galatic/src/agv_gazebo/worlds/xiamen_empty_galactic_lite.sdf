@@ -61,8 +61,13 @@
     </model>
 
     <include>
-      <uri>model://xiamen_site</uri>
+      <uri>model://xiamen_site_optimized</uri>
       <name>xiamen_site</name>
+    </include>
+
+    <include>
+      <uri>model://xiamen_lane_overlay</uri>
+      <name>xiamen_lane_overlay</name>
     </include>
 
     <include>
