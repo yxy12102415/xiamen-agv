@@ -24,6 +24,51 @@ and control against the same Gazebo scene.
 - `src/agv_maps/map/xiamen-prod.osm`: Xiamen Lanelet2-style vector map.
 - `src/agv_bringup`: Autoware + Gazebo integration launch files and route helper.
 
+## 中文说明
+
+这是厦门港 AGV 仿真的 ROS 2 Humble 工作空间，包含 Gazebo 场景、Lanelet2 风格
+地图、RViz 可视化、双轴转向 AGV 车辆模型，以及独立仿真和 Autoware 联合仿真的
+启动文件。
+
+主要目录：
+
+- `src/agv_gazebo`：Gazebo 世界、AGV 模型、激光雷达、动态障碍物、Gazebo/ROS
+  桥接和 RViz 启动配置。
+- `src/agv_vehicle_model`：双轴转向车辆仿真节点和键盘控制。
+- `src/agv_map_visualizer`：Lanelet2 地图、车辆、采样点云和标记可视化。
+- `src/agv_mpc_controller`：轨迹中心线发布和轻量采样 MPC 跟踪控制。
+- `src/agv_safety_supervisor`：速度、加速度、制动、转向和指令超时安全限制。
+- `src/agv_vehicle_interface`：面向实车联调的接口骨架和影子模式节点。
+- `src/agv_bringup`：Autoware + Gazebo 集成启动文件和路线辅助工具。
+
+当前进度：
+
+- 已完成厦门港 Gazebo 场景、AGV 模型、六路激光点云桥接、RViz 可视化、独立轨迹
+  跟踪、双轴车辆仿真、安全监督器、堆场吊和集装箱场景对象。
+- 项目仍处于“丰富仿真 / 实车预集成”阶段，不能直接部署到真实 AGV。
+- 实车部署前还需要完成底盘 CAN/以太网协议、急停和看门狗、传感器外参、定位地图
+  原点、低速封闭场地测试，以及空载/负载车辆动力学参数标定。
+- 当前 Ackermann 内外轮差角已经用于 TF 和 Gazebo 车轮可视化；MPC 和车辆动力学
+  模型仍使用轴中心等效转角。
+
+常用命令：
+
+```bash
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install
+source install/setup.bash
+./sim.sh
+./autosim.sh
+```
+
+`./sim.sh` 启动独立 Gazebo/RViz 仿真；`./autosim.sh` 在此基础上加载 Autoware
+规划、控制、API 和系统模块。不要同时运行两个仿真入口，除非使用不同的
+ROS/Gazebo domain 和 world。
+
+RViz 使用 `map` 作为固定坐标系。仿真器发布 `map -> base_link`，启动文件发布
+从 `base_link` 到激光雷达、IMU、GNSS 等传感器坐标系的静态 TF。若点云位置漂移
+或闪烁，优先检查 Gazebo SDF、启动参数和实车标定外参是否一致。
+
 ## Current Progress
 
 The project is currently at a **rich simulation / pre-real-vehicle integration**
