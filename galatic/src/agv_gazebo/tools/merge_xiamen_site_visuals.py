@@ -117,12 +117,23 @@ def main():
     LANE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     for lane_key, lane_mesh in lane_meshes.items():
         lane_path = LANE_OUTPUT_DIR / f"xiamen_lanes_{lane_key}.obj"
+        material_name = f"lane_{lane_key}"
         with lane_path.open("w", encoding="ascii") as obj:
+            obj.write(f"mtllib xiamen_lanes_{lane_key}.mtl\n")
             obj.write(f"o xiamen_lanes_{lane_key}\n")
             for x, y, z in lane_mesh["vertices"]:
                 obj.write(f"v {x:.6f} {y:.6f} {z:.6f}\n")
+            obj.write(f"usemtl {material_name}\n")
             for a, b, c in lane_mesh["faces"]:
                 obj.write(f"f {a} {b} {c}\n")
+        color = (0.95, 0.84, 0.22) if lane_key == "yellow" else (0.95, 0.95, 0.86)
+        material_path = LANE_OUTPUT_DIR / f"xiamen_lanes_{lane_key}.mtl"
+        with material_path.open("w", encoding="ascii") as mtl:
+            mtl.write(f"newmtl {material_name}\n")
+            mtl.write(f"Ka {color[0]:.3f} {color[1]:.3f} {color[2]:.3f}\n")
+            mtl.write(f"Kd {color[0]:.3f} {color[1]:.3f} {color[2]:.3f}\n")
+            mtl.write("Ks 0.05 0.05 0.05\n")
+            mtl.write("d 1.0\n")
 
     print(
         f"Merged {len(vertices) // 8} visuals into {OBJ_PATH} "

@@ -13,6 +13,7 @@
           <ambient>0.95 0.95 0.86 1</ambient>
           <diffuse>0.95 0.95 0.86 1</diffuse>
           <specular>0.05 0.05 0.05 1</specular>
+          <emissive>0.45 0.45 0.40 1</emissive>
         </material>
       </visual>
       <visual name="yellow_lane_markings">
@@ -25,6 +26,7 @@
           <ambient>0.95 0.84 0.22 1</ambient>
           <diffuse>0.95 0.84 0.22 1</diffuse>
           <specular>0.05 0.05 0.05 1</specular>
+          <emissive>0.45 0.38 0.08 1</emissive>
         </material>
       </visual>
     </link>
