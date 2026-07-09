@@ -37,12 +37,12 @@ def main():
     }
 
     cube_faces = (
-        (0, 2, 3), (0, 3, 1),
-        (4, 5, 7), (4, 7, 6),
-        (0, 1, 5), (0, 5, 4),
-        (2, 6, 7), (2, 7, 3),
-        (0, 4, 6), (0, 6, 2),
-        (1, 3, 7), (1, 7, 5),
+        (0, 3, 2), (0, 1, 3),
+        (4, 7, 5), (4, 6, 7),
+        (0, 5, 1), (0, 4, 5),
+        (2, 7, 6), (2, 3, 7),
+        (0, 6, 4), (0, 2, 6),
+        (1, 7, 3), (1, 5, 7),
     )
 
     for visual in root.findall(".//visual"):
@@ -74,25 +74,25 @@ def main():
             (-hx, -hy, hz), (-hx, hy, hz),
             (hx, -hy, hz), (hx, hy, hz),
         )
-        start = len(vertices) + 1
+        transformed_corners = []
         for corner in corners:
             x, y, z = rotate(corner, pose[3], pose[4], pose[5])
-            vertices.append((x + pose[0], y + pose[1], z + pose[2]))
-
-        material_faces = faces_by_material.setdefault(material_name, [])
-        material_faces.extend(
-            tuple(start + index for index in face) for face in cube_faces
-        )
+            transformed_corners.append((x + pose[0], y + pose[1], z + pose[2]))
 
         if visual.get("name", "").startswith("line_"):
             lane_key = "yellow" if diffuse[0] > 0.9 and diffuse[1] < 0.9 else "white"
             lane_mesh = lane_meshes[lane_key]
             lane_start = len(lane_mesh["vertices"]) + 1
-            for corner in corners:
-                x, y, z = rotate(corner, pose[3], pose[4], pose[5])
-                lane_mesh["vertices"].append((x + pose[0], y + pose[1], z + pose[2]))
+            lane_mesh["vertices"].extend(transformed_corners)
             lane_mesh["faces"].extend(
                 tuple(lane_start + index for index in face) for face in cube_faces
+            )
+        else:
+            start = len(vertices) + 1
+            vertices.extend(transformed_corners)
+            material_faces = faces_by_material.setdefault(material_name, [])
+            material_faces.extend(
+                tuple(start + index for index in face) for face in cube_faces
             )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
