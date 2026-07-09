@@ -51,6 +51,10 @@ def main():
             continue
 
         size = [float(value) for value in size_element.text.split()]
+        is_lane_marking = visual.get("name", "").startswith("line_")
+        if is_lane_marking:
+            width_index = 0 if size[0] < size[1] else 1
+            size[width_index] = max(size[width_index], 0.24)
         pose_element = visual.find("./pose")
         pose = [0.0] * 6 if pose_element is None else [
             float(value) for value in pose_element.text.split()
@@ -79,7 +83,7 @@ def main():
             x, y, z = rotate(corner, pose[3], pose[4], pose[5])
             transformed_corners.append((x + pose[0], y + pose[1], z + pose[2]))
 
-        if visual.get("name", "").startswith("line_"):
+        if is_lane_marking:
             lane_key = "yellow" if diffuse[0] > 0.9 and diffuse[1] < 0.9 else "white"
             lane_mesh = lane_meshes[lane_key]
             lane_start = len(lane_mesh["vertices"]) + 1
