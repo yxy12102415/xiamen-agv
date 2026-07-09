@@ -163,7 +163,61 @@ axis-center equivalent steering angles.
 
 ### Docker / Container
 
-If the host does not have ROS 2 Galactic installed, use the Docker helper:
+If the host does not have ROS 2 Galactic installed, use the Docker helper. The
+helper expects an existing Docker image named `agv-sim-galactic:latest` by
+default. The repository is mounted into the container, so edits on the host are
+visible inside Docker.
+
+For another machine, the normal workflow is:
+
+```bash
+git clone https://github.com/yxy12102415/xiamen-agv.git
+cd xiamen-agv/galatic
+
+# Verify that Docker can see the GPU. This is recommended for Gazebo/RViz.
+./docker.sh gpu-check
+
+# Build the Galactic workspace inside Docker.
+./docker.sh build
+
+# Start Gazebo + RViz + control nodes.
+./docker.sh sim control
+```
+
+If a previous container is still occupying the name, stop/remove it first:
+
+```bash
+./docker.sh clean
+```
+
+If GPU passthrough is not configured yet, `./docker.sh gpu-check` prints the
+NVIDIA Container Toolkit installation commands. Without GPU passthrough, Gazebo
+and lidar/RViz rendering can be much slower.
+
+中文说明：
+
+如果别人电脑上没有 ROS 2 Galactic，可以直接用 Docker 启动。默认需要本机已经有
+`agv-sim-galactic:latest` 这个镜像；仓库目录会挂载进容器，所以宿主机改代码、
+容器里运行会同步看到。
+
+```bash
+git clone https://github.com/yxy12102415/xiamen-agv.git
+cd xiamen-agv/galatic
+./docker.sh gpu-check
+./docker.sh build
+./docker.sh sim control
+```
+
+如果提示容器名冲突，先执行：
+
+```bash
+./docker.sh clean
+```
+
+如果 `gpu-check` 不通过，需要先按它打印的命令安装 NVIDIA Container Toolkit；
+否则 Gazebo、RViz 和点云显示会明显更卡。
+
+For manual shell access:
 
 ```bash
 cd /data/projects/xiamen-agv-sim/galatic
