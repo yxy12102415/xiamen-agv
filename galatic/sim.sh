@@ -103,7 +103,7 @@ case "${MODE}" in
     ;;
   no-control)
     shift
-    export AGV_GALACTIC_LITE_WORLD=1
+    unset AGV_GALACTIC_LITE_WORLD
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
@@ -145,7 +145,7 @@ case "${MODE}" in
     ;;
   control)
     shift
-    export AGV_GALACTIC_LITE_WORLD=1
+    unset AGV_GALACTIC_LITE_WORLD
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \
@@ -172,7 +172,7 @@ case "${MODE}" in
       "$@"
     ;;
   *)
-    export AGV_GALACTIC_LITE_WORLD=1
+    unset AGV_GALACTIC_LITE_WORLD
     exec ros2 launch agv_gazebo agv_gazebo_sim.launch.py \
       use_autoware_map:=false \
       use_standalone_map:=true \

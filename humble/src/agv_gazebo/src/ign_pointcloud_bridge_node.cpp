@@ -59,7 +59,8 @@ public:
     ros_topic_ = declare_parameter<std::string>("ros_topic", "/sim/lidar/points_raw");
     fallback_frame_id_ = declare_parameter<std::string>("fallback_frame_id", "base_link");
 
-    pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(ros_topic_, rclcpp::QoS{10});
+    pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
+      ros_topic_, rclcpp::SensorDataQoS().keep_last(1));
     const auto callback = [this](
                             const char * data, const size_t size,
                             const ignition::transport::MessageInfo &) {

@@ -86,6 +86,8 @@ public:
     traffic_vehicle_speed_ = declare_parameter<double>("traffic_vehicle_speed", 1.5);
     pedestrian_speed_ = declare_parameter<double>("pedestrian_speed", 0.8);
     yard_crane_speed_ = declare_parameter<double>("yard_crane_speed", 1.2);
+    request_timeout_ms_ = declare_parameter<int>("request_timeout_ms", 100);
+    start_delay_s_ = declare_parameter<double>("start_delay_s", 6.0);
 
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
     client_ = create_client<gazebo_interfaces::srv::SetEntityPose>(service_name_);
@@ -133,6 +135,11 @@ private:
 
   void on_timer()
   {
+    const double elapsed_since_start = (now() - start_time_).seconds();
+    if (elapsed_since_start < start_delay_s_) {
+      return;
+    }
+
 #ifndef AGV_USE_IGN_TRANSPORT_FOR_POSE
     if (!client_->service_is_ready()) {
       RCLCPP_WARN_THROTTLE(
@@ -142,7 +149,7 @@ private:
     }
 #endif
 
-    const double t = (now() - start_time_).seconds();
+    const double t = elapsed_since_start - start_delay_s_;
     const std::vector<SegmentMotion> motions{
       {"straight_moving_vehicle", 18.00, 54.00, 168.00, 54.00, 0.0, traffic_vehicle_speed_, true},
     };
@@ -259,7 +266,7 @@ private:
     const auto request = to_ign_pose(entity_name, pose);
     ignition::msgs::Boolean response;
     bool result = false;
-    constexpr unsigned int timeout_ms = 10;
+    const auto timeout_ms = static_cast<unsigned int>(std::max(1, request_timeout_ms_));
     const bool executed = ign_node_.Request(service_name_, request, timeout_ms, response, result);
     if (!executed || !result || !response.data()) {
       RCLCPP_WARN_THROTTLE(
@@ -280,6 +287,8 @@ private:
   double traffic_vehicle_speed_;
   double pedestrian_speed_;
   double yard_crane_speed_;
+  int request_timeout_ms_;
+  double start_delay_s_;
   rclcpp::Time start_time_;
 #ifdef AGV_USE_IGN_TRANSPORT_FOR_POSE
   ignition::transport::Node ign_node_;

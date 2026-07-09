@@ -464,7 +464,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -493,7 +493,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -522,7 +522,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -551,7 +551,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -580,7 +580,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -609,7 +609,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>480</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>

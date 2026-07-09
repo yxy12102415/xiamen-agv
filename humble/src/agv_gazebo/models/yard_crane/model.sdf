@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <sdf version="1.9">
   <model name="yard_crane">
-    <static>false</static>
+    <static>true</static>
     <link name="base_link">
       <gravity>false</gravity>
       <self_collide>false</self_collide>
