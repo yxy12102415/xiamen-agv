@@ -389,6 +389,7 @@ experiments. Each camera publishes an image and camera info topic:
 
 All six simulated cameras use:
 
+- Mount height: `1.95 m`.
 - Horizontal field of view: `120 deg`.
 - Resolution: `960 x 540`.
 - Update rate: `15 Hz`.
@@ -430,6 +431,7 @@ Humble 仿真已经加入 6 路 120 度摄像头输入，可用于远程驾驶�
 
 当前参数为：
 
+- 安装高度：`1.95 m`。
 - 水平视场角：`120 deg`。
 - 分辨率：`960 x 540`。
 - 刷新率：`15 Hz`。
