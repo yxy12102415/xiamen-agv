@@ -145,10 +145,17 @@ must be integrated and verified, including CAN IDs, byte layout, scaling,
 checksums, heartbeat, fault bits, E-stop, braking priority, mode switching, and
 all feedback decoding.
 
+In simulation, `simulated_chassis_feedback_node` publishes real-chassis-like
+feedback under `/agv/chassis/*`, including actual velocity, acceleration, front
+and rear steering, wheel speeds, brake pressure, drive/steering motor states,
+gear, control mode, E-stop, fault, communication state, and a timestamped JSON
+summary.
+
 Deployment references:
 
 - [Real vehicle deployment checklist](docs/real_vehicle_deployment_checklist.md)
 - [Required chassis CAN / Ethernet signals](docs/can_interface_required_signals.md)
+- [Sensor, time, and calibration guide](docs/sensor_time_calibration_guide.md)
 - [Reference chassis protocol template](docs/reference_chassis_protocol.md)
 - [Reference AGV DBC template](docs/reference_agv_chassis.dbc)
 
@@ -169,10 +176,15 @@ Deployment references:
 真正上车前，还需要接入并验证厂家正式底盘 DBC / 以太网 ICD，包括 CAN ID、字节
 定义、缩放比例、校验、心跳、故障位、急停、制动优先级、模式切换和全部反馈解析。
 
+在仿真中，`simulated_chassis_feedback_node` 会在 `/agv/chassis/*` 下发布接近
+真实底盘的反馈，包括实际车速、实际加速度、前后轴转角、轮速、制动压力、驱动/
+转向电机状态、档位、控制模式、急停、故障、通信状态，以及带时间戳的 JSON 汇总。
+
 部署参考文档：
 
 - [实车部署检查清单](docs/real_vehicle_deployment_checklist.md)
 - [底盘 CAN / 以太网信号需求](docs/can_interface_required_signals.md)
+- [传感器、时间同步和标定说明](docs/sensor_time_calibration_guide.md)
 - [参考底盘协议模板](docs/reference_chassis_protocol.md)
 - [参考 AGV DBC 模板](docs/reference_agv_chassis.dbc)
 

@@ -133,6 +133,7 @@ def generate_launch_description():
     enable_centerline_trajectory = LaunchConfiguration("enable_centerline_trajectory")
     enable_mpc = LaunchConfiguration("enable_mpc")
     enable_vehicle_interface = LaunchConfiguration("enable_vehicle_interface")
+    enable_simulated_chassis_feedback = LaunchConfiguration("enable_simulated_chassis_feedback")
     vehicle_interface_shadow_mode = LaunchConfiguration("vehicle_interface_shadow_mode")
     vehicle_interface_autonomous_enable = LaunchConfiguration("vehicle_interface_autonomous_enable")
     vehicle_interface_mock_feedback = LaunchConfiguration("vehicle_interface_mock_feedback")
@@ -323,6 +324,7 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_centerline_trajectory", default_value="true"),
             DeclareLaunchArgument("enable_mpc", default_value="true"),
             DeclareLaunchArgument("enable_vehicle_interface", default_value="true"),
+            DeclareLaunchArgument("enable_simulated_chassis_feedback", default_value="true"),
             DeclareLaunchArgument("vehicle_interface_shadow_mode", default_value="true"),
             DeclareLaunchArgument("vehicle_interface_autonomous_enable", default_value="false"),
             DeclareLaunchArgument("vehicle_interface_mock_feedback", default_value="false"),
@@ -726,6 +728,28 @@ def generate_launch_description():
                     }
                 ],
                 condition=IfCondition(enable_vehicle_interface),
+            ),
+            Node(
+                package="agv_vehicle_interface",
+                executable="simulated_chassis_feedback_node",
+                name="simulated_chassis_feedback",
+                output="screen",
+                parameters=[
+                    {
+                        "odom_topic": "/localization/kinematic_state",
+                        "control_topic": "/control/command/control_cmd",
+                        "front_steer_topic": "/agv/status/front_steer",
+                        "rear_steer_topic": "/agv/status/rear_steer",
+                        "gear_status_topic": "/vehicle/status/gear_status",
+                        "control_mode_topic": "/vehicle/status/control_mode",
+                        "emergency_stop_topic": "/agv/safety/emergency_stop",
+                        "wheel_radius": 0.66,
+                        "max_brake_pressure_bar": 160.0,
+                        "max_brake_decel": 4.0,
+                        "max_drive_accel": 0.35,
+                    }
+                ],
+                condition=IfCondition(enable_simulated_chassis_feedback),
             ),
             Node(
                 package="agv_gazebo",

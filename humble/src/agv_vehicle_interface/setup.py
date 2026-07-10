@@ -20,6 +20,7 @@ setup(
         "console_scripts": [
             "reference_vehicle_interface_node = agv_vehicle_interface.reference_vehicle_interface_node:main",
             "real_vehicle_interface_node = agv_vehicle_interface.real_vehicle_interface_node:main",
+            "simulated_chassis_feedback_node = agv_vehicle_interface.simulated_chassis_feedback_node:main",
         ],
     },
 )
