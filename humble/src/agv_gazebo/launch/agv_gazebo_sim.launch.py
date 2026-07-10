@@ -125,6 +125,7 @@ def generate_launch_description():
     use_standalone_map = LaunchConfiguration("use_standalone_map")
     use_autoware_map = LaunchConfiguration("use_autoware_map")
     enable_lidar_topics = LaunchConfiguration("enable_lidar_topics")
+    enable_camera_topics = LaunchConfiguration("enable_camera_topics")
     enable_lidar_markers = LaunchConfiguration("enable_lidar_markers")
     enable_sensor_tf = LaunchConfiguration("enable_sensor_tf")
     enable_dynamic_obstacles = LaunchConfiguration("enable_dynamic_obstacles")
@@ -179,11 +180,21 @@ def generate_launch_description():
         f"/sensing/lidar/fl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/rr_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
     ]
+    camera_frames = [
+        ("front", "7.65", "0.0", "1.35", "0.0", "0.0", "0.0"),
+        ("rear", "-7.65", "0.0", "1.35", "3.141593", "0.0", "0.0"),
+        ("left_front", "3.75", "1.65", "1.35", "1.570796", "0.0", "0.0"),
+        ("left_rear", "-3.75", "1.65", "1.35", "1.570796", "0.0", "0.0"),
+        ("right_front", "3.75", "-1.65", "1.35", "-1.570796", "0.0", "0.0"),
+        ("right_rear", "-3.75", "-1.65", "1.35", "-1.570796", "0.0", "0.0"),
+    ]
     camera_bridges = [
-        f"/sensing/camera/front/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-        f"/sensing/camera/front/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
-        f"/sensing/camera/rear/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-        f"/sensing/camera/rear/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+        bridge
+        for camera_name, *_ in camera_frames
+        for bridge in (
+            f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
+            f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+        )
     ]
     if gazebo_packages["supports_service_bridge"]:
         system_bridges.append(
@@ -241,17 +252,10 @@ def generate_launch_description():
             secondary_gnss_frame_id,
             "secondary_gnss_tf",
         ),
-        ("7.15", "0.0", "1.25", "0.0", "0.0", "0.0", "front_camera", "front_camera_tf"),
-        (
-            "-7.15",
-            "0.0",
-            "1.25",
-            "3.141593",
-            "0.0",
-            "0.0",
-            "rear_camera",
-            "rear_camera_tf",
-        ),
+        *[
+            (x, y, z, yaw, pitch, roll, f"{camera_name}_camera", f"{camera_name}_camera_tf")
+            for camera_name, x, y, z, yaw, pitch, roll in camera_frames
+        ],
     ]
 
     return LaunchDescription(
@@ -311,6 +315,7 @@ def generate_launch_description():
             DeclareLaunchArgument("use_standalone_map", default_value="true"),
             DeclareLaunchArgument("use_autoware_map", default_value="false"),
             DeclareLaunchArgument("enable_lidar_topics", default_value="true"),
+            DeclareLaunchArgument("enable_camera_topics", default_value="true"),
             DeclareLaunchArgument("enable_lidar_markers", default_value="false"),
             DeclareLaunchArgument("enable_sensor_tf", default_value="true"),
             DeclareLaunchArgument("enable_dynamic_obstacles", default_value="true"),
@@ -386,7 +391,7 @@ def generate_launch_description():
                 name="agv_camera_bridge",
                 output="screen",
                 arguments=camera_bridges,
-                condition=IfCondition(enable_lidar_topics),
+                condition=IfCondition(enable_camera_topics),
             ),
             *[
                 Node(

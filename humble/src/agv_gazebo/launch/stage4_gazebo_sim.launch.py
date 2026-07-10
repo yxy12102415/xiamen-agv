@@ -143,12 +143,25 @@ def generate_launch_description():
         f"/sensing/lidar/rr_lidar_1/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/fl_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
         f"/sensing/lidar/rr_lidar_2/points@sensor_msgs/msg/PointCloud2[{gazebo_msgs}.PointCloudPacked",
-        f"/sensing/camera/front/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-        f"/sensing/camera/front/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
-        f"/sensing/camera/rear/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-        f"/sensing/camera/rear/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
         f"/clock@rosgraph_msgs/msg/Clock[{gazebo_msgs}.Clock",
     ]
+    camera_frames = [
+        ("front", "7.65", "0.0", "1.35", "0.0", "0.0", "0.0"),
+        ("rear", "-7.65", "0.0", "1.35", "3.141593", "0.0", "0.0"),
+        ("left_front", "3.75", "1.65", "1.35", "1.570796", "0.0", "0.0"),
+        ("left_rear", "-3.75", "1.65", "1.35", "1.570796", "0.0", "0.0"),
+        ("right_front", "3.75", "-1.65", "1.35", "-1.570796", "0.0", "0.0"),
+        ("right_rear", "-3.75", "-1.65", "1.35", "-1.570796", "0.0", "0.0"),
+    ]
+    camera_bridges = [
+        bridge
+        for camera_name, *_ in camera_frames
+        for bridge in (
+            f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
+            f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+        )
+    ]
+    lidar_bridges.extend(camera_bridges)
     if gazebo_packages["supports_service_bridge"]:
         lidar_bridges.append(
             f"/world/xiamen_empty/set_pose@{set_pose_service_type}"
@@ -195,17 +208,10 @@ def generate_launch_description():
             secondary_gnss_frame_id,
             "secondary_gnss_tf",
         ),
-        ("7.15", "0.0", "1.25", "0.0", "0.0", "0.0", "front_camera", "front_camera_tf"),
-        (
-            "-7.15",
-            "0.0",
-            "1.25",
-            "3.141593",
-            "0.0",
-            "0.0",
-            "rear_camera",
-            "rear_camera_tf",
-        ),
+        *[
+            (x, y, z, yaw, pitch, roll, f"{camera_name}_camera", f"{camera_name}_camera_tf")
+            for camera_name, x, y, z, yaw, pitch, roll in camera_frames
+        ],
     ]
 
     return LaunchDescription(

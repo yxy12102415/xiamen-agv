@@ -401,7 +401,7 @@
       </visual>
 
       <visual name="front_camera_visual">
-        <pose>7.15 0 1.25 0 0 0</pose>
+        <pose>7.65 0 1.35 0 0 0</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -415,7 +415,63 @@
       </visual>
 
       <visual name="rear_camera_visual">
-        <pose>-7.15 0 1.25 0 0 3.141593</pose>
+        <pose>-7.65 0 1.35 0 0 3.141593</pose>
+        <geometry>
+          <box>
+            <size>0.16 0.36 0.22</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.0 0.95 1.0 1.0</ambient>
+          <diffuse>0.0 0.95 1.0 1.0</diffuse>
+          <emissive>0.0 0.16 0.18 1.0</emissive>
+        </material>
+      </visual>
+
+      <visual name="left_front_camera_visual">
+        <pose>3.75 1.65 1.35 0 0 1.570796</pose>
+        <geometry>
+          <box>
+            <size>0.16 0.36 0.22</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.0 0.95 1.0 1.0</ambient>
+          <diffuse>0.0 0.95 1.0 1.0</diffuse>
+          <emissive>0.0 0.16 0.18 1.0</emissive>
+        </material>
+      </visual>
+
+      <visual name="left_rear_camera_visual">
+        <pose>-3.75 1.65 1.35 0 0 1.570796</pose>
+        <geometry>
+          <box>
+            <size>0.16 0.36 0.22</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.0 0.95 1.0 1.0</ambient>
+          <diffuse>0.0 0.95 1.0 1.0</diffuse>
+          <emissive>0.0 0.16 0.18 1.0</emissive>
+        </material>
+      </visual>
+
+      <visual name="right_front_camera_visual">
+        <pose>3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <geometry>
+          <box>
+            <size>0.16 0.36 0.22</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.0 0.95 1.0 1.0</ambient>
+          <diffuse>0.0 0.95 1.0 1.0</diffuse>
+          <emissive>0.0 0.16 0.18 1.0</emissive>
+        </material>
+      </visual>
+
+      <visual name="right_rear_camera_visual">
+        <pose>-3.75 -1.65 1.35 0 0 -1.570796</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -632,14 +688,14 @@
       </sensor>
 
       <sensor name="front_camera" type="camera">
-        <pose>7.15 0 1.25 0 0 0</pose>
+        <pose>7.65 0 1.35 0 0 0</pose>
         <topic>/sensing/camera/front/image</topic>
         <update_rate>15</update_rate>
         <camera>
-          <horizontal_fov>1.396263</horizontal_fov>
+          <horizontal_fov>2.094395</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>960</width>
+            <height>540</height>
             <format>R8G8B8</format>
           </image>
           <clip>
@@ -652,14 +708,94 @@
       </sensor>
 
       <sensor name="rear_camera" type="camera">
-        <pose>-7.15 0 1.25 0 0 3.141593</pose>
+        <pose>-7.65 0 1.35 0 0 3.141593</pose>
         <topic>/sensing/camera/rear/image</topic>
         <update_rate>15</update_rate>
         <camera>
-          <horizontal_fov>1.396263</horizontal_fov>
+          <horizontal_fov>2.094395</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>960</width>
+            <height>540</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>120.0</far>
+          </clip>
+        </camera>
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+      </sensor>
+
+      <sensor name="left_front_camera" type="camera">
+        <pose>3.75 1.65 1.35 0 0 1.570796</pose>
+        <topic>/sensing/camera/left_front/image</topic>
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>2.094395</horizontal_fov>
+          <image>
+            <width>960</width>
+            <height>540</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>120.0</far>
+          </clip>
+        </camera>
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+      </sensor>
+
+      <sensor name="left_rear_camera" type="camera">
+        <pose>-3.75 1.65 1.35 0 0 1.570796</pose>
+        <topic>/sensing/camera/left_rear/image</topic>
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>2.094395</horizontal_fov>
+          <image>
+            <width>960</width>
+            <height>540</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>120.0</far>
+          </clip>
+        </camera>
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+      </sensor>
+
+      <sensor name="right_front_camera" type="camera">
+        <pose>3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <topic>/sensing/camera/right_front/image</topic>
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>2.094395</horizontal_fov>
+          <image>
+            <width>960</width>
+            <height>540</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>120.0</far>
+          </clip>
+        </camera>
+        <always_on>true</always_on>
+        <visualize>false</visualize>
+      </sensor>
+
+      <sensor name="right_rear_camera" type="camera">
+        <pose>-3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <topic>/sensing/camera/right_rear/image</topic>
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>2.094395</horizontal_fov>
+          <image>
+            <width>960</width>
+            <height>540</height>
             <format>R8G8B8</format>
           </image>
           <clip>

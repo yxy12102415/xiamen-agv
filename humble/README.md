@@ -239,6 +239,7 @@ Useful launch arguments:
 ./sim.sh use_rviz:=false
 ./sim.sh use_gazebo_gui:=false
 ./sim.sh enable_mpc:=false
+./sim.sh enable_camera_topics:=false
 ./sim.sh initial_x:=9.9991 initial_y:=28.0013 initial_yaw:=-1.5708
 ./sim.sh steering_mode:=crab
 ```
@@ -370,3 +371,65 @@ their yaw follows the simulated front and rear steering angles.
 Lidar extrinsics are launch arguments too, using each frame prefix:
 `rslidar2_*`, `rslidar4_*`, `hesai_left_front_*`, and `hesai_right_rear_*`,
 where `*` is `x`, `y`, `z`, `yaw`, `pitch`, or `roll`.
+
+## Remote Driving Video Input
+
+The Humble simulation includes six 120-degree camera inputs for remote-driving
+experiments. Each camera publishes an image and camera info topic:
+
+- Front: `/sensing/camera/front/image`, frame `front_camera`.
+- Rear: `/sensing/camera/rear/image`, frame `rear_camera`.
+- Left front side: `/sensing/camera/left_front/image`, frame
+  `left_front_camera`.
+- Left rear side: `/sensing/camera/left_rear/image`, frame `left_rear_camera`.
+- Right front side: `/sensing/camera/right_front/image`, frame
+  `right_front_camera`.
+- Right rear side: `/sensing/camera/right_rear/image`, frame
+  `right_rear_camera`.
+
+All six simulated cameras use:
+
+- Horizontal field of view: `120 deg`.
+- Resolution: `960 x 540`.
+- Update rate: `15 Hz`.
+
+You can check a stream with:
+
+```bash
+ros2 run rqt_image_view rqt_image_view
+```
+
+or inspect the topics:
+
+```bash
+ros2 topic list | rg "/sensing/camera"
+ros2 topic hz /sensing/camera/front/image
+```
+
+The launch argument `enable_camera_topics` can disable only the camera bridges
+while leaving lidar topics unchanged:
+
+```bash
+./sim.sh enable_camera_topics:=false
+```
+
+中文：
+
+Humble 仿真已经加入 6 路 120 度摄像头输入，可用于远程驾驶仿真。车头、车尾各
+一个摄像头，车身左右两侧各两个摄像头。每路都有 `image` 和 `camera_info` 话题。
+
+当前参数为：
+
+- 水平视场角：`120 deg`。
+- 分辨率：`960 x 540`。
+- 刷新率：`15 Hz`。
+
+查看视频可以使用：
+
+```bash
+ros2 run rqt_image_view rqt_image_view
+```
+
+远程驾驶的下一步建议是在这些图像话题后面增加视频编码/传输节点，例如
+H.264/WebRTC/GStreamer，并加入网络延迟、抖动、丢包和中断仿真。当网络中断或
+控制指令超时时，车辆端应通过 safety supervisor 自动制动并进入安全停车模式。
