@@ -145,6 +145,13 @@ must be integrated and verified, including CAN IDs, byte layout, scaling,
 checksums, heartbeat, fault bits, E-stop, braking priority, mode switching, and
 all feedback decoding.
 
+Deployment references:
+
+- [Real vehicle deployment checklist](docs/real_vehicle_deployment_checklist.md)
+- [Required chassis CAN / Ethernet signals](docs/can_interface_required_signals.md)
+- [Reference chassis protocol template](docs/reference_chassis_protocol.md)
+- [Reference AGV DBC template](docs/reference_agv_chassis.dbc)
+
 中文：
 
 当前项目里**已经有实车接口骨架**，但还不是已经完成验证的正式实车底盘接口。
@@ -161,6 +168,13 @@ all feedback decoding.
 也就是说，默认不会真正驱动车辆。目前它适合做台架测试、影子模式测试和协议联调。
 真正上车前，还需要接入并验证厂家正式底盘 DBC / 以太网 ICD，包括 CAN ID、字节
 定义、缩放比例、校验、心跳、故障位、急停、制动优先级、模式切换和全部反馈解析。
+
+部署参考文档：
+
+- [实车部署检查清单](docs/real_vehicle_deployment_checklist.md)
+- [底盘 CAN / 以太网信号需求](docs/can_interface_required_signals.md)
+- [参考底盘协议模板](docs/reference_chassis_protocol.md)
+- [参考 AGV DBC 模板](docs/reference_agv_chassis.dbc)
 
 For load handling, start with discrete parameter sets such as:
 
