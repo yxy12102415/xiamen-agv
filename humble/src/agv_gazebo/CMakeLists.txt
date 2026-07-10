@@ -142,6 +142,13 @@ install(
 )
 
 install(
+  PROGRAMS
+    scripts/remote_drive_camera_viewer.py
+  RENAME remote_drive_camera_viewer
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
   TARGETS
     ${AGV_GAZEBO_TARGETS}
   DESTINATION lib/${PROJECT_NAME}

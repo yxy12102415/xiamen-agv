@@ -401,7 +401,7 @@
       </visual>
 
       <visual name="front_camera_visual">
-        <pose>7.65 0 1.35 0 0 0</pose>
+        <pose>7.65 0 1.35 0 0.174533 0</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -415,7 +415,7 @@
       </visual>
 
       <visual name="rear_camera_visual">
-        <pose>-7.65 0 1.35 0 0 3.141593</pose>
+        <pose>-7.65 0 1.35 0 0.174533 3.141593</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -429,7 +429,7 @@
       </visual>
 
       <visual name="left_front_camera_visual">
-        <pose>3.75 1.65 1.35 0 0 1.570796</pose>
+        <pose>3.75 1.65 1.35 0 0.174533 1.570796</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -443,7 +443,7 @@
       </visual>
 
       <visual name="left_rear_camera_visual">
-        <pose>-3.75 1.65 1.35 0 0 1.570796</pose>
+        <pose>-3.75 1.65 1.35 0 0.174533 1.570796</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -457,7 +457,7 @@
       </visual>
 
       <visual name="right_front_camera_visual">
-        <pose>3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <pose>3.75 -1.65 1.35 0 0.174533 -1.570796</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -471,7 +471,7 @@
       </visual>
 
       <visual name="right_rear_camera_visual">
-        <pose>-3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <pose>-3.75 -1.65 1.35 0 0.174533 -1.570796</pose>
         <geometry>
           <box>
             <size>0.16 0.36 0.22</size>
@@ -688,7 +688,7 @@
       </sensor>
 
       <sensor name="front_camera" type="camera">
-        <pose>7.65 0 1.35 0 0 0</pose>
+        <pose>7.65 0 1.35 0 0.174533 0</pose>
         <topic>/sensing/camera/front/image</topic>
         <update_rate>15</update_rate>
         <camera>
@@ -708,7 +708,7 @@
       </sensor>
 
       <sensor name="rear_camera" type="camera">
-        <pose>-7.65 0 1.35 0 0 3.141593</pose>
+        <pose>-7.65 0 1.35 0 0.174533 3.141593</pose>
         <topic>/sensing/camera/rear/image</topic>
         <update_rate>15</update_rate>
         <camera>
@@ -728,7 +728,7 @@
       </sensor>
 
       <sensor name="left_front_camera" type="camera">
-        <pose>3.75 1.65 1.35 0 0 1.570796</pose>
+        <pose>3.75 1.65 1.35 0 0.174533 1.570796</pose>
         <topic>/sensing/camera/left_front/image</topic>
         <update_rate>15</update_rate>
         <camera>
@@ -748,7 +748,7 @@
       </sensor>
 
       <sensor name="left_rear_camera" type="camera">
-        <pose>-3.75 1.65 1.35 0 0 1.570796</pose>
+        <pose>-3.75 1.65 1.35 0 0.174533 1.570796</pose>
         <topic>/sensing/camera/left_rear/image</topic>
         <update_rate>15</update_rate>
         <camera>
@@ -768,7 +768,7 @@
       </sensor>
 
       <sensor name="right_front_camera" type="camera">
-        <pose>3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <pose>3.75 -1.65 1.35 0 0.174533 -1.570796</pose>
         <topic>/sensing/camera/right_front/image</topic>
         <update_rate>15</update_rate>
         <camera>
@@ -788,7 +788,7 @@
       </sensor>
 
       <sensor name="right_rear_camera" type="camera">
-        <pose>-3.75 -1.65 1.35 0 0 -1.570796</pose>
+        <pose>-3.75 -1.65 1.35 0 0.174533 -1.570796</pose>
         <topic>/sensing/camera/right_rear/image</topic>
         <update_rate>15</update_rate>
         <camera>

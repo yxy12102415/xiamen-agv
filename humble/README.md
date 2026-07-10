@@ -393,7 +393,17 @@ All six simulated cameras use:
 - Resolution: `960 x 540`.
 - Update rate: `15 Hz`.
 
-You can check a stream with:
+For a remote-driving style combined view, run:
+
+```bash
+ros2 run agv_gazebo remote_drive_camera_viewer
+```
+
+The viewer shows the front camera as the large main image, with the remaining
+five cameras as smaller tiles on the right side. Each tile is labeled and shows
+whether the stream is live, waiting, or stale.
+
+You can still check a single stream with:
 
 ```bash
 ros2 run rqt_image_view rqt_image_view
@@ -424,7 +434,16 @@ Humble 仿真已经加入 6 路 120 度摄像头输入，可用于远程驾驶�
 - 分辨率：`960 x 540`。
 - 刷新率：`15 Hz`。
 
-查看视频可以使用：
+查看视频推荐使用远程驾驶拼接窗口：
+
+```bash
+ros2 run agv_gazebo remote_drive_camera_viewer
+```
+
+这个窗口会把前视摄像头作为最大主画面，其他五路摄像头以小窗口显示在右侧，并标出
+每路画面是否在线。
+
+单独查看某一路视频也可以使用：
 
 ```bash
 ros2 run rqt_image_view rqt_image_view
