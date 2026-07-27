@@ -1,8 +1,11 @@
 #include "simple_planning_simulator/vehicle_model/sim_model_delay_steer_vel_two_axis.hpp"
 
+#include "agv_vehicle_model/steering_geometry.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <numeric>
 
 namespace autoware::simulator::simple_planning_simulator
@@ -16,13 +19,17 @@ SimModelDelaySteerVelTwoAxis::SimModelDelaySteerVelTwoAxis(
   const std::array<double, 4> & axle_positions_m,
   const std::array<double, 4> & axle_cornering_stiffness_n_rad,
   const std::array<double, 4> & axle_normal_loads_n, double tire_friction_coefficient,
+  double wheel_tread_m, double ackermann_axle1_wheelbase_m,
+  double ackermann_axle2_wheelbase_m, bool enable_ackermann_wheel_angles,
   double center_of_gravity_height_m, double rolling_resistance_coefficient,
   double aerodynamic_drag_coefficient, double frontal_area_m2, double air_density_kg_m3,
   double wheel_radius_m, double wheel_inertia_kgm2, int wheel_count,
   double dt, double vx_delay, double vx_time_constant,
   double drive_delay, double brake_delay, double drive_time_constant, double brake_time_constant,
-  double steer_delay, double steer_time_constant, double steer_dead_band, double steer_bias,
-  bool all_wheel_drive)
+  double drive_accel_dead_band, double brake_decel_dead_band, double max_drive_force_n,
+  double max_drive_power_kw, double steer_delay, double steer_time_constant,
+  double steer_dead_band, double steer_backlash, double steer_bias, bool all_wheel_drive,
+  bool use_smooth_tire_saturation)
 : SimModelInterface(9 /* dim x */, 5 /* dim u */),
   MIN_TIME_CONSTANT(0.03),
   vx_lim_(vx_lim),
@@ -43,6 +50,10 @@ SimModelDelaySteerVelTwoAxis::SimModelDelaySteerVelTwoAxis(
   axle_cornering_stiffness_n_rad_(axle_cornering_stiffness_n_rad),
   axle_normal_loads_n_(axle_normal_loads_n),
   tire_friction_coefficient_(tire_friction_coefficient),
+  wheel_tread_m_(wheel_tread_m),
+  ackermann_axle1_wheelbase_m_(ackermann_axle1_wheelbase_m),
+  ackermann_axle2_wheelbase_m_(ackermann_axle2_wheelbase_m),
+  enable_ackermann_wheel_angles_(enable_ackermann_wheel_angles),
   center_of_gravity_height_m_(center_of_gravity_height_m),
   rolling_resistance_coefficient_(std::max(0.0, rolling_resistance_coefficient)),
   aerodynamic_drag_coefficient_(std::max(0.0, aerodynamic_drag_coefficient)),
@@ -59,7 +70,12 @@ SimModelDelaySteerVelTwoAxis::SimModelDelaySteerVelTwoAxis(
   brake_delay_(brake_delay),
   drive_time_constant_(std::max(drive_time_constant, MIN_TIME_CONSTANT)),
   brake_time_constant_(std::max(brake_time_constant, MIN_TIME_CONSTANT)),
+  drive_accel_dead_band_(std::max(0.0, drive_accel_dead_band)),
+  brake_decel_dead_band_(std::max(0.0, brake_decel_dead_band)),
+  max_drive_force_n_(std::max(0.0, max_drive_force_n)),
+  max_drive_power_w_(std::max(0.0, max_drive_power_kw) * 1000.0),
   all_wheel_drive_(all_wheel_drive),
+  use_smooth_tire_saturation_(use_smooth_tire_saturation),
   enable_lateral_dynamics_(
     vehicle_mass_kg > 1.0 && yaw_inertia_kgm2 > 1.0 &&
     std::all_of(
@@ -73,9 +89,23 @@ SimModelDelaySteerVelTwoAxis::SimModelDelaySteerVelTwoAxis(
   steer_delay_(steer_delay),
   steer_time_constant_(std::max(steer_time_constant, MIN_TIME_CONSTANT)),
   steer_dead_band_(steer_dead_band),
+  steer_backlash_(std::max(0.0, steer_backlash)),
   steer_bias_(steer_bias)
 {
   initializeInputQueue(dt);
+}
+
+double SimModelDelaySteerVelTwoAxis::applySteeringBacklash(
+  const double command, double & effective_command) const
+{
+  if (steer_backlash_ <= 0.0) {
+    effective_command = command;
+  } else if (command > effective_command + steer_backlash_) {
+    effective_command = command - steer_backlash_;
+  } else if (command < effective_command - steer_backlash_) {
+    effective_command = command + steer_backlash_;
+  }
+  return effective_command;
 }
 
 double SimModelDelaySteerVelTwoAxis::resistanceForce(
@@ -148,6 +178,7 @@ double SimModelDelaySteerVelTwoAxis::getSteerR()
 
 void SimModelDelaySteerVelTwoAxis::update(const double & dt)
 {
+  const double vx_before_update = state_(IDX::VX);
   Eigen::VectorXd delayed_input = Eigen::VectorXd::Zero(dim_u_);
 
   vx_input_queue_.push_back(input_(IDX_U::VX_DES));
@@ -182,8 +213,21 @@ void SimModelDelaySteerVelTwoAxis::update(const double & dt)
   delayed_input(IDX_U::STEER_R_DES) = steer_r_input_queue_.front();
   steer_r_input_queue_.pop_front();
 
+  delayed_input(IDX_U::STEER_F_DES) = applySteeringBacklash(
+    delayed_input(IDX_U::STEER_F_DES), effective_steer_cmd_f_);
+  delayed_input(IDX_U::STEER_R_DES) = applySteeringBacklash(
+    delayed_input(IDX_U::STEER_R_DES), effective_steer_cmd_r_);
+
   // do not use deadzone_delta_steer (Steer IF does not exist in this model)
   updateRungeKutta(dt, delayed_input);
+  const bool zero_velocity_target = std::abs(delayed_input(IDX_U::VX_DES)) < 1.0e-4;
+  const bool crossed_zero =
+    (vx_before_update >= 0.0 && state_(IDX::VX) < 0.0) ||
+    (vx_before_update <= 0.0 && state_(IDX::VX) > 0.0);
+  if (zero_velocity_target && crossed_zero) {
+    state_(IDX::VX) = 0.0;
+    state_(IDX::AX) = 0.0;
+  }
   prev_vx_ = state_(IDX::VX);
 }
 
@@ -235,9 +279,26 @@ Eigen::VectorXd SimModelDelaySteerVelTwoAxis::calcModel(
   const double delay_vx_des = sat(delay_input_vx, vx_lim_, -vx_lim_);
   const double velocity_error_ax =
     sat((delay_vx_des - vx) / vx_time_constant_, max_drive_accel_, -max_brake_decel_);
-  const double requested_net_ax =
+  double requested_net_ax =
     sat(use_ax_command ? delay_input_ax : velocity_error_ax, max_drive_accel_, -max_brake_decel_);
+  if (requested_net_ax > 0.0 && requested_net_ax < drive_accel_dead_band_) {
+    requested_net_ax = 0.0;
+  } else if (requested_net_ax < 0.0 && -requested_net_ax < brake_decel_dead_band_) {
+    requested_net_ax = 0.0;
+  }
   const double resistance_force_n = resistanceForce(vx, requested_net_ax);
+  if (requested_net_ax > 0.0 && (max_drive_force_n_ > 0.0 || max_drive_power_w_ > 0.0)) {
+    double available_drive_force_n = max_drive_force_n_ > 0.0 ?
+      max_drive_force_n_ : std::numeric_limits<double>::max();
+    if (max_drive_power_w_ > 0.0) {
+      available_drive_force_n = std::min(
+        available_drive_force_n, max_drive_power_w_ / std::max(std::abs(vx), 0.5));
+    }
+    const double available_net_ax = std::max(
+      0.0, (available_drive_force_n - std::abs(resistance_force_n)) /
+      effective_longitudinal_mass_kg_);
+    requested_net_ax = std::min(requested_net_ax, available_net_ax);
+  }
   const double ax_des =
     requested_net_ax + resistance_force_n / effective_longitudinal_mass_kg_;
   const double longitudinal_time_constant =
@@ -274,30 +335,15 @@ Eigen::VectorXd SimModelDelaySteerVelTwoAxis::calcModel(
   const double steer_rate_f = sat(-steer_diff_f_with_deadband / steer_time_constant_, steer_rate_lim_, -steer_rate_lim_);
   const double steer_rate_r = sat(-steer_diff_r_with_deadband / steer_time_constant_, steer_rate_lim_, -steer_rate_lim_);
 
-  // Two steer inputs are interpreted as axle 1 and axle 2 steering.
-  // Axles 3 and 4 are fixed for the current "12-axle steering" vehicle mode.
-  const std::array<double, 4> axle_steers{{steer_f, steer_r, 0.0, 0.0}};
-
-  double sum_x = 0.0;
-  double sum_xx = 0.0;
-  double sum_y = 0.0;
-  double sum_xy = 0.0;
-  for (size_t axle_index = 0; axle_index < axle_positions_m_.size(); ++axle_index) {
-    const double axle_x = axle_positions_m_[axle_index];
-    const double desired_lateral_velocity = vx * std::tan(axle_steers[axle_index]);
-    sum_x += axle_x;
-    sum_xx += axle_x * axle_x;
-    sum_y += desired_lateral_velocity;
-    sum_xy += axle_x * desired_lateral_velocity;
-  }
-  const double axle_count = static_cast<double>(axle_positions_m_.size());
-  const double fit_denominator = axle_count * sum_xx - sum_x * sum_x;
-  const double kinematic_vy =
-    std::abs(fit_denominator) > 1.0e-6 ?
-    (sum_y * sum_xx - sum_x * sum_xy) / fit_denominator : 0.0;
-  omega_ =
-    std::abs(fit_denominator) > 1.0e-6 ?
-    (axle_count * sum_xy - sum_x * sum_y) / fit_denominator : 0.0;
+  // The two states are axle-center steering angles for axles 1 and 2. Each axle is
+  // expanded to left/right Ackermann angles; axles 3 and 4 remain fixed.
+  const auto wheel_steers = agv_vehicle_model::frontTwoAxleWheelSteers(
+    steer_f, steer_r, ackermann_axle1_wheelbase_m_, ackermann_axle2_wheelbase_m_,
+    wheel_tread_m_, enable_ackermann_wheel_angles_);
+  const auto kinematic_velocity = agv_vehicle_model::fitWheelKinematics(
+    vx, axle_positions_m_, wheel_tread_m_, wheel_steers);
+  const double kinematic_vy = kinematic_velocity.lateral;
+  omega_ = kinematic_velocity.yaw_rate;
 
   const double vx_for_beta = std::copysign(std::max(std::abs(vx), 0.05), vx == 0.0 ? 1.0 : vx);
   beta_ = std::atan2(kinematic_vy, vx_for_beta);
@@ -348,32 +394,23 @@ Eigen::VectorXd SimModelDelaySteerVelTwoAxis::calcModel(
 
     double total_lateral_force_n = 0.0;
     double total_yaw_moment_nm = 0.0;
-    for (size_t axle_index = 0; axle_index < axle_positions_m_.size(); ++axle_index) {
-      const double axle_x = axle_positions_m_[axle_index];
-      const double axle_steer = axle_steers[axle_index];
-      const double slip_angle =
-        axle_steer - std::atan2(dynamic_vy + axle_x * dynamic_wz, vx_for_slip);
-      double lateral_force_n =
-        axle_cornering_stiffness_n_rad_[axle_index] * slip_angle;
-
-      if (tire_friction_coefficient_ > 0.0) {
-        const bool driven_axle = all_wheel_drive_ || axle_index >= 2;
-        const double longitudinal_axle_force_n =
-          driven_axle && driven_normal_load_n > 1.0 ?
-          longitudinal_force_n * dynamic_normal_loads_n[axle_index] / driven_normal_load_n :
-          0.0;
-        const double lateral_force_limit_n = std::sqrt(std::max(
-          0.0,
-          std::pow(
-            tire_friction_coefficient_ * dynamic_normal_loads_n[axle_index], 2.0) -
-          std::pow(longitudinal_axle_force_n, 2.0)));
-        lateral_force_n =
-          sat(lateral_force_n, lateral_force_limit_n, -lateral_force_limit_n);
-      }
-
-      const double body_lateral_force_n = lateral_force_n * std::cos(axle_steer);
-      total_lateral_force_n += body_lateral_force_n;
-      total_yaw_moment_nm += axle_x * body_lateral_force_n;
+    const double half_tread = 0.5 * wheel_tread_m_;
+    for (size_t wheel_index = 0; wheel_index < wheel_steers.size(); ++wheel_index) {
+      const size_t axle_index = wheel_index / 2;
+      const double wheel_x = axle_positions_m_[axle_index];
+      const double wheel_y = wheel_index % 2 == 0 ? half_tread : -half_tread;
+      const double wheel_normal_load_n = 0.5 * dynamic_normal_loads_n[axle_index];
+      const bool driven_wheel = all_wheel_drive_ || axle_index >= 2;
+      const double longitudinal_wheel_force_n =
+        driven_wheel && driven_normal_load_n > 1.0 ?
+        longitudinal_force_n * wheel_normal_load_n / driven_normal_load_n : 0.0;
+      const auto wheel_force = agv_vehicle_model::calculateWheelLateralForce(
+        wheel_x, wheel_y, wheel_steers[wheel_index], vx_for_slip, dynamic_vy,
+        dynamic_wz, 0.5 * axle_cornering_stiffness_n_rad_[axle_index],
+        wheel_normal_load_n, tire_friction_coefficient_, longitudinal_wheel_force_n,
+        use_smooth_tire_saturation_);
+      total_lateral_force_n += wheel_force.body_lateral_force;
+      total_yaw_moment_nm += wheel_force.yaw_moment;
     }
 
     vy = dynamic_vy;

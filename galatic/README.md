@@ -48,8 +48,8 @@ and control against the same Gazebo scene.
 - 项目仍处于“丰富仿真 / 实车预集成”阶段，不能直接部署到真实 AGV。
 - 实车部署前还需要完成底盘 CAN/以太网协议、急停和看门狗、传感器外参、定位地图
   原点、低速封闭场地测试，以及空载/负载车辆动力学参数标定。
-- 当前 Ackermann 内外轮差角已经用于 TF 和 Gazebo 车轮可视化；MPC 和车辆动力学
-  模型仍使用轴中心等效转角。
+- 已保持前两轴转向、后两轴固定；轴中心转角会转换为左右轮 Ackermann 转角，
+  8 个轮位分别参与轮胎力计算，MPC 使用相同的八轮运动学几何。
 
 Docker 使用：
 
@@ -77,6 +77,25 @@ RViz 使用 `map` 作为固定坐标系。仿真器发布 `map -> base_link`，�
 从 `base_link` 到激光雷达、IMU、GNSS 等传感器坐标系的静态 TF。若点云位置漂移
 或闪烁，优先检查 Gazebo SDF、启动参数和实车标定外参是否一致。
 
+## 负载动力学工况
+
+Galactic Docker 启动时也可选择负载工况：
+
+    ./docker.sh sim control vehicle_load_profile:=payload_20t
+    ./docker.sh sim control vehicle_load_profile:=payload_30_48t
+    ./docker.sh sim control vehicle_load_profile:=rated_70t
+
+四档分别为 0、20、30.48 和 70 吨载荷。质量、三维质心、偏航惯量、轴荷、
+轮胎侧偏刚度、轮胎半径和牵引力限制会同步切换；这些是工程估计，不是实车标定
+结果，详见 [动力学估计说明](docs/estimated_vehicle_dynamics.md)。
+
+## Estimated Load Profiles
+
+Use vehicle_load_profile:=empty|payload_20t|payload_30_48t|rated_70t with the
+simulation command. The profile updates mass, 3D center of gravity, yaw inertia,
+axle loads, cornering stiffness, loaded wheel radius and tractive-force limits.
+See [estimated vehicle dynamics](docs/estimated_vehicle_dynamics.md).
+
 ## Current Progress
 
 The project is currently at a **rich simulation / pre-real-vehicle integration**
@@ -99,8 +118,8 @@ Implemented and working:
   - yard cranes moving along x from 0 m to 280 m at 1.2 m/s,
   - three rows of container piles aligned to yard cranes,
   - hanging containers under quay cranes on the controller trajectory lane.
-- Wheel TF / Gazebo wheel visualization now applies Ackermann inner/outer wheel
-  angle geometry for the first two steering axles.
+- Wheel TF, the dynamic tire model, and MPC prediction apply the same Ackermann
+  inner/outer geometry to eight wheel stations; only axles 1 and 2 steer.
 
 Recent scene layout:
 
@@ -153,6 +172,20 @@ must be integrated and verified, including CAN IDs, byte layout, scaling,
 checksums, heartbeat, fault bits, E-stop, braking priority, mode switching, and
 all feedback decoding.
 
+In simulation, `simulated_chassis_feedback_node` publishes real-chassis-like
+feedback under `/agv/chassis/*`, including actual velocity, acceleration, front
+and rear steering, wheel speeds, brake pressure, drive/steering motor states,
+gear, control mode, E-stop, fault, communication state, and a timestamped JSON
+summary.
+
+Deployment references:
+
+- [Real vehicle deployment checklist](docs/real_vehicle_deployment_checklist.md)
+- [Required chassis CAN / Ethernet signals](docs/can_interface_required_signals.md)
+- [Sensor, time, and calibration guide](docs/sensor_time_calibration_guide.md)
+- [Reference chassis protocol template](docs/reference_chassis_protocol.md)
+- [Reference AGV DBC template](docs/reference_agv_chassis.dbc)
+
 中文：
 
 当前项目里**已经有实车接口骨架**，但还不是已经完成验证的正式实车底盘接口。
@@ -169,6 +202,18 @@ all feedback decoding.
 也就是说，默认不会真正驱动车辆。目前它适合做台架测试、影子模式测试和协议联调。
 真正上车前，还需要接入并验证厂家正式底盘 DBC / 以太网 ICD，包括 CAN ID、字节
 定义、缩放比例、校验、心跳、故障位、急停、制动优先级、模式切换和全部反馈解析。
+
+仿真中的 `simulated_chassis_feedback_node` 会在 `/agv/chassis/*` 下发布接近
+真实底盘的反馈，包括实际车速、实际加速度、前后轴转角、轮速、制动压力、驱动/
+转向电机状态、档位、控制模式、急停、故障、通信状态，以及带时间戳的 JSON 汇总。
+
+部署参考文档：
+
+- [实车部署检查清单](docs/real_vehicle_deployment_checklist.md)
+- [底盘 CAN / 以太网信号需求](docs/can_interface_required_signals.md)
+- [传感器、时间同步和标定说明](docs/sensor_time_calibration_guide.md)
+- [参考底盘协议模板](docs/reference_chassis_protocol.md)
+- [参考 AGV DBC 模板](docs/reference_agv_chassis.dbc)
 
 For load handling, start with discrete parameter sets such as:
 
@@ -189,28 +234,31 @@ back-calculated because measured values are not available yet.
 
 Currently matched / configured:
 
+- Vehicle length and width: `15.0 m x 2.98 m`.
+- Axle x positions relative to the center of gravity:
+  `+4.65, +3.00, -3.00, -4.65 m`.
 - Mass: `23000 kg`.
 - Wheel rolling radius: `0.66 m`.
 - Steering rate limit: `0.261799 rad/s` = `15 deg/s`.
 - Max drive acceleration: `0.35 m/s^2`.
 - Max brake deceleration: `4.0 m/s^2`, aligned with the line-control braking
   requirement rather than the older table value of `0.35 m/s^2`.
-- Ackermann visual wheel angles:
-  - front: `27.4 deg` outer gives approximately `33.0 deg` inner,
-  - rear: `22.6 deg` outer gives approximately `30.0 deg` inner.
+- Ackermann wheel angles used by visualization, dynamics, and MPC:
+  - axle 1: `27.4 deg` outer gives approximately `33.0 deg` inner,
+  - axle 2: `22.6 deg` outer gives approximately `30.0 deg` inner.
 
 Estimated / not measured:
 
 - `yaw_inertia_kgm2 = 432363.7513`.
 - Tire cornering stiffness values.
 - Rolling resistance, aerodynamic drag, frontal area, and wheel inertia.
-- Current axle positions in the model are based on the Gazebo geometry and are
-  not yet matched to the sheet values of 4.65 m for axles 1/4 and 3.0 m for
-  axles 2/3.
+- Wheel tread, total height, center-of-gravity height, and wheel width still
+  need formal measured values.
 
-Important limitation: Ackermann inner/outer angles are currently applied to TF
-and Gazebo wheel visualization. The MPC and vehicle dynamics model still use
-axis-center equivalent steering angles.
+The controller still exposes two axle-center equivalent steering states. They
+are converted to left/right wheel angles before the eight-wheel kinematic and
+tire-force calculations. The equivalent Ackermann lengths are back-calculated,
+not measured steering-linkage dimensions.
 
 ## Build
 

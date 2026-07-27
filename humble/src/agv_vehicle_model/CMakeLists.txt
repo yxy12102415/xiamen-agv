@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(agv_vehicle_model)
 
+include(CTest)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -90,6 +92,41 @@ else()
     tf2_ros
   )
   list(APPEND AGV_VEHICLE_MODEL_TARGETS agv_two_axis_simulator_node)
+endif()
+
+if(BUILD_TESTING)
+  add_executable(test_ackermann_geometry
+    test/test_ackermann_geometry.cpp
+  )
+  target_compile_features(test_ackermann_geometry PUBLIC cxx_std_17)
+  target_include_directories(test_ackermann_geometry PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+  )
+  add_test(NAME test_ackermann_geometry COMMAND test_ackermann_geometry)
+
+  if(
+    autoware_adapi_v1_msgs_FOUND AND
+    autoware_control_msgs_FOUND AND
+    autoware_simple_planning_simulator_FOUND AND
+    autoware_vehicle_msgs_FOUND
+  )
+    add_executable(test_vehicle_dynamics_regression
+      test/test_vehicle_dynamics_regression.cpp
+      src/sim_model_delay_steer_vel_two_axis.cpp
+    )
+    target_compile_features(test_vehicle_dynamics_regression PUBLIC cxx_std_17)
+    target_include_directories(test_vehicle_dynamics_regression PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+    ament_target_dependencies(test_vehicle_dynamics_regression
+      autoware_simple_planning_simulator
+    )
+    target_link_libraries(test_vehicle_dynamics_regression Eigen3::Eigen)
+    add_test(
+      NAME test_vehicle_dynamics_regression
+      COMMAND test_vehicle_dynamics_regression
+    )
+  endif()
 endif()
 
 install(

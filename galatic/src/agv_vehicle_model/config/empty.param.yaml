@@ -1,0 +1,41 @@
+agv_two_axis_simulator:
+  ros__parameters:
+    load_profile_name: empty
+    payload_mass_kg: 0.0
+    center_of_gravity_x_m: 0.0
+    center_of_gravity_y_m: 0.0
+    center_of_gravity_height_m: 0.8
+    vehicle_mass_kg: 23000.0
+    yaw_inertia_kgm2: 432363.7513
+    axle_load_kg: 5750.0
+    wheel_load_kg: 2875.0
+    front_normal_load_n: 112815.0
+    rear_normal_load_n: 112815.0
+    axle1_normal_load_n: 56407.5
+    axle2_normal_load_n: 56407.5
+    axle3_normal_load_n: 56407.5
+    axle4_normal_load_n: 56407.5
+    front_cornering_stiffness_n_rad: 400000.0
+    rear_cornering_stiffness_n_rad: 400000.0
+    axle1_cornering_stiffness_n_rad: 200000.0
+    axle2_cornering_stiffness_n_rad: 200000.0
+    axle3_cornering_stiffness_n_rad: 200000.0
+    axle4_cornering_stiffness_n_rad: 200000.0
+    wheel_radius: 0.66
+    wheel_tf_z: 0.66
+    max_drive_force_n: 11188.8
+    max_drive_power_kw: 280.0
+    drive_accel_dead_band: 0.02
+    brake_decel_dead_band: 0.05
+    steer_backlash: 0.003491
+    use_smooth_tire_saturation: true
+
+sampling_mpc_controller:
+  ros__parameters:
+    prediction_drive_accel_dead_band: 0.02
+    prediction_brake_decel_dead_band: 0.05
+    prediction_steer_backlash: 0.003491
+
+simulated_chassis_feedback:
+  ros__parameters:
+    wheel_radius: 0.66

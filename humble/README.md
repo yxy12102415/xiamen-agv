@@ -48,8 +48,8 @@ and control against the same Gazebo scene.
 - 项目仍处于“丰富仿真 / 实车预集成”阶段，不能直接部署到真实 AGV。
 - 实车部署前还需要完成底盘 CAN/以太网协议、急停和看门狗、传感器外参、定位地图
   原点、低速封闭场地测试，以及空载/负载车辆动力学参数标定。
-- 当前 Ackermann 内外轮差角已经用于 TF 和 Gazebo 车轮可视化；MPC 和车辆动力学
-  模型仍使用轴中心等效转角。
+- 已保持前两轴转向、后两轴固定；轴中心转角会转换为左右轮 Ackermann 转角，
+  8 个轮位分别参与轮胎力计算，MPC 使用相同的八轮运动学几何。
 
 常用命令：
 
@@ -65,9 +65,69 @@ source install/setup.bash
 规划、控制、API 和系统模块。不要同时运行两个仿真入口，除非使用不同的
 ROS/Gazebo domain 和 world。
 
+## 远程驾驶网络仿真
+
+远驾模式已经加入应用层网络仿真。控制指令、模拟 B&R 状态反馈和六路摄像头默认
+都使用 `50 ms` 单向延迟，抖动和丢包默认为零。远驾控制台显示 UDP 链路状态、
+反馈时延，以及每路相机的接收/显示帧率和估算画面年龄。
+
+```bash
+./sim.sh remote
+
+# 自定义单向延迟、抖动和丢包率
+./sim.sh remote \
+  remote_network_delay_ms:=100.0 \
+  remote_network_jitter_ms:=20.0 \
+  remote_network_loss_percent:=2.0
+```
+
+视频默认由五个 Python/NVENC 发送节点、一个 Python/libx264 发送节点和六个 C++/FFmpeg 接收节点完成 H.264
+编码、Annex-B/UDP 传输、带宽限制、网络损伤和解码；每路默认 `1.5 Mbit/s`，总链路
+上限 `100 Mbit/s`。当前显卡最多并发五路 NVENC，因此右后相机固定使用 `libx264`；
+其他编码器运行失败时也会自动回退到 `libx264`。前视视频冻结约 `1 s` 或
+接收端健康诊断超过 `1.5 s` 时，REMOTE 仲裁器自动输出停车指令。正式
+RTP/SRT/WebRTC、5G 切片和鉴权仍未接入。完整状态见
+[远程驾驶 UDP 协议状态](docs/remote_driving_udp_protocol_status.md)。
+
+## Remote-Driving Network Simulation
+
+Remote mode now applies an application-level network model to command UDP,
+mock B&R feedback UDP, and all six camera feeds. The default is `50 ms` one-way
+delay, zero jitter, and zero packet loss. The console reports link state,
+feedback latency, camera receive/render FPS, and estimated image age.
+
+Each camera has a Python H.264 sender, an impairment queue, and a C++/FFmpeg
+receiver. The default path uses H.264 Annex-B over local UDP at `1.5 Mbit/s`
+per camera, with a `100 Mbit/s` aggregate cap. Five feeds use NVENC and the
+right-rear feed reserves the sixth slot with `libx264`; failed NVENC processes
+also fall back automatically. A front
+video freeze or receiver-health timeout stops REMOTE commands. RTP/SRT/WebRTC,
+5G slicing, authentication, and encryption remain future integration work.
+
 RViz 使用 `map` 作为固定坐标系。仿真器发布 `map -> base_link`，启动文件发布
 从 `base_link` 到激光雷达、IMU、GNSS 等传感器坐标系的静态 TF。若点云位置漂移
 或闪烁，优先检查 Gazebo SDF、启动参数和实车标定外参是否一致。
+
+## 负载动力学工况
+
+启动时可选择空载或三个负载工况：
+
+    ./sim.sh control vehicle_load_profile:=payload_20t
+    ./sim.sh control vehicle_load_profile:=payload_30_48t
+    ./sim.sh control vehicle_load_profile:=rated_70t
+
+四档分别为 0、20、30.48 和 70 吨载荷。质量、三维质心、偏航惯量、轴荷、
+轮胎侧偏刚度、轮胎半径和牵引力限制会同步切换；MPC 预测同步使用相同的执行器
+死区与转向回差。数值均为工程估计，不是实车标定结果，推导和待替换数据见
+[动力学估计说明](docs/estimated_vehicle_dynamics.md)。
+
+## Estimated Load Profiles
+
+Use vehicle_load_profile:=empty|payload_20t|payload_30_48t|rated_70t with
+sim.sh. The selected profile updates mass, 3D center of gravity, yaw inertia,
+axle loads, cornering stiffness, loaded wheel radius and tractive-force limits.
+These are engineering estimates, not measured vehicle data; see
+[estimated vehicle dynamics](docs/estimated_vehicle_dynamics.md).
 
 ## Current Progress
 
@@ -91,8 +151,8 @@ Implemented and working:
   - yard cranes moving along x from 0 m to 280 m at 1.2 m/s,
   - three rows of container piles aligned to yard cranes,
   - hanging containers under quay cranes on the controller trajectory lane.
-- Wheel TF / Gazebo wheel visualization now applies Ackermann inner/outer wheel
-  angle geometry for the first two steering axles.
+- Wheel TF, the dynamic tire model, and MPC prediction apply the same Ackermann
+  inner/outer geometry to eight wheel stations; only axles 1 and 2 steer.
 
 Recent scene layout:
 
@@ -158,6 +218,7 @@ Deployment references:
 - [Sensor, time, and calibration guide](docs/sensor_time_calibration_guide.md)
 - [Reference chassis protocol template](docs/reference_chassis_protocol.md)
 - [Reference AGV DBC template](docs/reference_agv_chassis.dbc)
+- [Remote-driving UDP protocol status and missing data](docs/remote_driving_udp_protocol_status.md)
 
 中文：
 
@@ -207,28 +268,31 @@ back-calculated because measured values are not available yet.
 
 Currently matched / configured:
 
+- Vehicle length and width: `15.0 m x 2.98 m`.
+- Axle x positions relative to the center of gravity:
+  `+4.65, +3.00, -3.00, -4.65 m`.
 - Mass: `23000 kg`.
 - Wheel rolling radius: `0.66 m`.
 - Steering rate limit: `0.261799 rad/s` = `15 deg/s`.
 - Max drive acceleration: `0.35 m/s^2`.
 - Max brake deceleration: `4.0 m/s^2`, aligned with the line-control braking
   requirement rather than the older table value of `0.35 m/s^2`.
-- Ackermann visual wheel angles:
-  - front: `27.4 deg` outer gives approximately `33.0 deg` inner,
-  - rear: `22.6 deg` outer gives approximately `30.0 deg` inner.
+- Ackermann wheel angles used by visualization, dynamics, and MPC:
+  - axle 1: `27.4 deg` outer gives approximately `33.0 deg` inner,
+  - axle 2: `22.6 deg` outer gives approximately `30.0 deg` inner.
 
 Estimated / not measured:
 
 - `yaw_inertia_kgm2 = 432363.7513`.
 - Tire cornering stiffness values.
 - Rolling resistance, aerodynamic drag, frontal area, and wheel inertia.
-- Current axle positions in the model are based on the Gazebo geometry and are
-  not yet matched to the sheet values of 4.65 m for axles 1/4 and 3.0 m for
-  axles 2/3.
+- Wheel tread, total height, center-of-gravity height, and wheel width still
+  need formal measured values.
 
-Important limitation: Ackermann inner/outer angles are currently applied to TF
-and Gazebo wheel visualization. The MPC and vehicle dynamics model still use
-axis-center equivalent steering angles.
+The controller still exposes two axle-center equivalent steering states. They
+are converted to left/right wheel angles before the eight-wheel kinematic and
+tire-force calculations. The equivalent Ackermann lengths are back-calculated,
+not measured steering-linkage dimensions.
 
 ## Build
 
@@ -477,6 +541,104 @@ ros2 run agv_gazebo remote_drive_camera_viewer
 ros2 run rqt_image_view rqt_image_view
 ```
 
-远程驾驶的下一步建议是在这些图像话题后面增加视频编码/传输节点，例如
-H.264/WebRTC/GStreamer，并加入网络延迟、抖动、丢包和中断仿真。当网络中断或
-控制指令超时时，车辆端应通过 safety supervisor 自动制动并进入安全停车模式。
+### Remote driving control / 远程驾驶控制
+
+The Humble control path includes an AUTO/REMOTE command arbiter. The remote
+operator now passes through a 40 Hz UDP/TLV domain gateway and a simulated B&R
+vehicle controller before reaching the REMOTE input. Only the selected source
+reaches `agv_safety_supervisor`. The default authority is `AUTO`. Authority
+changes are accepted only while vehicle speed is at or below `0.05 m/s`.
+
+```text
+WASD -> /remote/operator/* -> UDP/TLV gateway -> mock B&R
+     -> /remote/control/* -> command mux -> safety supervisor -> vehicle
+```
+
+Start the complete remote-driving session with one command:
+
+```bash
+cd /data/projects/xiamen-agv-sim/humble
+./sim.sh remote
+```
+
+This one command starts Gazebo, RViz, the command arbiter, and one GTA-style
+WASD console containing all six camera views. Closing the control window or
+pressing `Ctrl+C` stops the whole session. To skip only the camera mosaic
+inside the console, run `./sim.sh remote enable_camera_topics:=false`. The old
+separate camera window is available only when explicitly requested with
+`AGV_REMOTE_CAMERA_VIEWER=1 ./sim.sh remote`.
+
+If a terminal or GUI is force-closed, stop every process from this simulation
+with `./sim.sh stop` before starting it again.
+
+WASD control-window keys:
+
+- Hold `W`: accelerate forward; release it to coast to a stop.
+- Hold `S`: brake, then reverse after reaching zero speed.
+- Hold `A` / `D`: steer left / right; steering returns to center on release.
+- Hold `Space`: brake to zero.
+- `E`: latch remote E-stop; `Z`: reset at zero speed.
+- `R` / `M`: request REMOTE / AUTO authority while stopped.
+- `Q` or `Esc`: close the complete remote-driving session.
+- Click any side/rear camera tile to promote it to the large main view.
+
+The control window itself is the deadman: losing window focus, closing the
+window, or losing the operator process makes the vehicle stop. The legacy
+terminal controller remains available with
+`AGV_REMOTE_TERMINAL_CONTROL=1 ./sim.sh remote`.
+
+All six camera panels target the same `15 Hz` rate as the Gazebo cameras. Their
+captions show received/displayed FPS; camera subscriptions keep only the newest
+frame so temporary rendering load cannot build up an increasing video delay.
+
+Inspect authority and safety state with:
+
+```bash
+ros2 topic echo /agv/control/authority/state
+ros2 topic echo /agv/safety/state
+```
+
+中文说明：Humble 控制链现在包含 AUTO/REMOTE 仲裁器。远驾操作指令先经过 40 Hz
+UDP/TLV 域控网关和模拟 B&R 车端控制器，再进入 REMOTE 输入；MPC 使用独立 AUTO
+输入。只有当前获得控制权的一方能够进入 `agv_safety_supervisor`。默认是 `AUTO`，
+并且车辆速度不超过 `0.05 m/s` 时才允许切换控制权。
+
+只需执行 `./sim.sh remote`：它会同时启动 Gazebo、RViz、控制仲裁器和一个包含六路
+摄像头画面的 GTA 风格 WASD 驾驶台，不再额外打开独立摄像头窗口。关闭驾驶台或按
+`Ctrl+C` 会关闭整套远程驾驶进程。点击驾驶台窗口后，按住 `W` 前进，
+按住 `S` 制动并在停车后倒车，`A/D` 左右转向，松开方向键自动回正，`Space` 制动。
+`E` 锁存急停，停车后按 `Z` 复位。控制窗口本身就是 deadman：窗口失去焦点、被关闭
+或控制进程中断时，车辆都会自动停车。旧终端控制仍可通过
+`AGV_REMOTE_TERMINAL_CONTROL=1 ./sim.sh remote` 使用。
+如果终端或图形窗口被强制关闭，可执行 `./sim.sh stop` 一次性关闭本项目残留的
+Gazebo、RViz、传感器桥和控制节点，再重新启动。
+点击任意侧视或后视小画面，可以把该摄像头切换到上方主画面，再次点击其他画面即可
+继续切换。
+
+六个画面的目标频率与 Gazebo 摄像头相同，均为 `15 Hz`；实际频率取决于 Gazebo
+传感器渲染负载。标题显示输入、编码、解码/显示 FPS、码率和画面年龄。每路使用
+独立 H.264/NVENC 发送器、C++ 接收器和最新帧队列，短时处理不及时会丢弃旧帧，
+不会无限累积延迟。C++ 接收器替代 Python 原始图像发布后，发送节点 CPU 从完整场景
+下约 `70-100%` 单核降低到约 `7-9%`。场景和摄像头参数没有简化；剩余刷新率限制
+主要来自 Gazebo 六相机和六激光雷达的 GPU 渲染。
+默认单向网络延迟为 `50 ms`，也可切换到旧的原始图像链路：
+
+```bash
+./sim.sh remote remote_video_transport:=raw
+```
+
+视频和控制网络可以分别注入故障。例如保持控制链正常，仅让视频完全丢包：
+
+```bash
+./sim.sh remote remote_video_loss_percent:=100.0
+```
+
+此时前视接收端会变为 `WAITING/STALE`，控制状态变为
+`REMOTE:STOPPED_VIDEO_STALE`。也可以独立设置 `remote_video_delay_ms` 和
+`remote_video_jitter_ms`；未设置时继承公共的 `remote_network_*` 参数。
+
+下一阶段是接入正式 RTP/SRT/WebRTC、真实视频服务器与 5G/QoS 接口，而不是继续
+使用本机环回 UDP。
+
+协议实现中的已知假设及向同事索取资料的清单见
+[远程驾驶 UDP 协议状态](docs/remote_driving_udp_protocol_status.md)。

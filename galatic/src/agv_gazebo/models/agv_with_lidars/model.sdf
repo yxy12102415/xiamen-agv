@@ -29,13 +29,13 @@
         <pose>0 0 1.282817 0 0 0</pose>
         <geometry>
           <box>
-            <size>14.691926 3.119038 2.544597</size>
+            <size>15.0 2.98 2.544597</size>
           </box>
         </geometry>
       </collision>
 
       <collision name="axle1_left_wheel_collision">
-        <pose>4.479714 1.190692 0.66 1.5708 0 0</pose>
+        <pose>4.65 1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -44,7 +44,7 @@
         </geometry>
       </collision>
       <collision name="axle1_right_wheel_collision">
-        <pose>4.479714 -1.190692 0.66 1.5708 0 0</pose>
+        <pose>4.65 -1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -53,7 +53,7 @@
         </geometry>
       </collision>
       <collision name="axle2_left_wheel_collision">
-        <pose>2.596727 1.190692 0.66 1.5708 0 0</pose>
+        <pose>3.0 1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -62,7 +62,7 @@
         </geometry>
       </collision>
       <collision name="axle2_right_wheel_collision">
-        <pose>2.596727 -1.190692 0.66 1.5708 0 0</pose>
+        <pose>3.0 -1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -71,7 +71,7 @@
         </geometry>
       </collision>
       <collision name="axle3_left_wheel_collision">
-        <pose>-2.570058 1.190692 0.66 1.5708 0 0</pose>
+        <pose>-3.0 1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -80,7 +80,7 @@
         </geometry>
       </collision>
       <collision name="axle3_right_wheel_collision">
-        <pose>-2.570058 -1.190692 0.66 1.5708 0 0</pose>
+        <pose>-3.0 -1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -89,7 +89,7 @@
         </geometry>
       </collision>
       <collision name="axle4_left_wheel_collision">
-        <pose>-4.479289 1.190692 0.66 1.5708 0 0</pose>
+        <pose>-4.65 1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -98,7 +98,7 @@
         </geometry>
       </collision>
       <collision name="axle4_right_wheel_collision">
-        <pose>-4.479289 -1.190692 0.66 1.5708 0 0</pose>
+        <pose>-4.65 -1.190692 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -198,7 +198,7 @@
       </visual>
 
       <visual name="axle1_left_wheel_visual">
-        <pose>4.479714 1.43 0.66 1.5708 0 0</pose>
+        <pose>4.65 1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -212,7 +212,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle1_right_wheel_visual">
-        <pose>4.479714 -1.43 0.66 1.5708 0 0</pose>
+        <pose>4.65 -1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -226,7 +226,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle2_left_wheel_visual">
-        <pose>2.596727 1.43 0.66 1.5708 0 0</pose>
+        <pose>3.0 1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -240,7 +240,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle2_right_wheel_visual">
-        <pose>2.596727 -1.43 0.66 1.5708 0 0</pose>
+        <pose>3.0 -1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -254,7 +254,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle3_left_wheel_visual">
-        <pose>-2.570058 1.43 0.66 1.5708 0 0</pose>
+        <pose>-3.0 1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -268,7 +268,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle3_right_wheel_visual">
-        <pose>-2.570058 -1.43 0.66 1.5708 0 0</pose>
+        <pose>-3.0 -1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -282,7 +282,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle4_left_wheel_visual">
-        <pose>-4.479289 1.43 0.66 1.5708 0 0</pose>
+        <pose>-4.65 1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -296,7 +296,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle4_right_wheel_visual">
-        <pose>-4.479289 -1.43 0.66 1.5708 0 0</pose>
+        <pose>-4.65 -1.43 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -311,10 +311,10 @@
       </visual>
 
       <visual name="fl_lidar_1_visual">
-        <pose>7.346 1.560 1.25 0 0 0</pose>
+        <pose>7.500 1.490 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.09</radius>
+            <radius>0.05</radius>
             <length>0.10</length>
           </cylinder>
         </geometry>
@@ -326,10 +326,10 @@
       </visual>
 
       <visual name="fr_lidar_1_visual">
-        <pose>7.346 -1.560 1.25 0 0 0</pose>
+        <pose>7.500 -1.490 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.09</radius>
+            <radius>0.05</radius>
             <length>0.10</length>
           </cylinder>
         </geometry>
@@ -341,10 +341,10 @@
       </visual>
 
       <visual name="rl_lidar_1_visual">
-        <pose>-7.346 -1.560 1.25 0 0 0</pose>
+        <pose>-7.500 -1.490 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.09</radius>
+            <radius>0.05</radius>
             <length>0.10</length>
           </cylinder>
         </geometry>
@@ -356,10 +356,10 @@
       </visual>
 
       <visual name="rr_lidar_1_visual">
-        <pose>-7.346 1.560 1.25 0 0 0</pose>
+        <pose>-7.500 1.490 1.25 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.09</radius>
+            <radius>0.05</radius>
             <length>0.10</length>
           </cylinder>
         </geometry>
@@ -374,8 +374,8 @@
         <pose>4.55 1.52 2.45 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.11</radius>
-            <length>0.14</length>
+            <radius>0.05</radius>
+            <length>0.10</length>
           </cylinder>
         </geometry>
         <material>
@@ -389,8 +389,8 @@
         <pose>-4.55 -1.52 2.45 0 0 0</pose>
         <geometry>
           <cylinder>
-            <radius>0.11</radius>
-            <length>0.14</length>
+            <radius>0.05</radius>
+            <length>0.10</length>
           </cylinder>
         </geometry>
         <material>
@@ -456,15 +456,22 @@
         </material>
       </visual>
 
-      <!-- Four surrounding lidars and two upward lidars.  Coordinates follow the IGV body frame. -->
+      <!--
+        RoboSense Helios reference profile: 360 deg, 10 Hz, 0.2-150 m and
+        1 cm Gaussian range noise. H16 uses 0.2 deg horizontal steps. H32 uses
+        a 0.4 deg Gazebo compatibility profile so Humble and Galactic publish
+        the same stable point-cloud shape. H32 vertical FoV follows H32F70
+        pending confirmation of the exact vehicle subtype.
+        Coordinates follow the IGV body frame and are independent of this profile.
+      -->
       <sensor name="fl_lidar_1" type="gpu_lidar">
-        <pose>7.346 1.560 1.25 0 0 0.785398</pose>
+        <pose>7.500 1.490 1.25 0 0 0.785398</pose>
         <topic>/sensing/lidar/fl_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>1800</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -477,23 +484,28 @@
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>120.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
       </sensor>
 
       <sensor name="fr_lidar_1" type="gpu_lidar">
-        <pose>7.346 -1.560 1.25 0 0 -0.785398</pose>
+        <pose>7.500 -1.490 1.25 0 0 -0.785398</pose>
         <topic>/sensing/lidar/fr_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>900</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -501,28 +513,33 @@
             <vertical>
               <samples>32</samples>
               <resolution>1</resolution>
-              <min_angle>-0.349066</min_angle>
-              <max_angle>0.349066</max_angle>
+              <min_angle>-0.959931</min_angle>
+              <max_angle>0.261799</max_angle>
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>200.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
       </sensor>
 
       <sensor name="rl_lidar_1" type="gpu_lidar">
-        <pose>-7.346 -1.560 1.25 0 0 -2.356194</pose>
+        <pose>-7.500 -1.490 1.25 0 0 -2.356194</pose>
         <topic>/sensing/lidar/rl_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>1800</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -535,23 +552,28 @@
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>120.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
       </sensor>
 
       <sensor name="rr_lidar_1" type="gpu_lidar">
-        <pose>-7.346 1.560 1.25 0 0 2.356194</pose>
+        <pose>-7.500 1.490 1.25 0 0 2.356194</pose>
         <topic>/sensing/lidar/rr_lidar_1</topic>
         <update_rate>10</update_rate>
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>900</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -559,15 +581,20 @@
             <vertical>
               <samples>32</samples>
               <resolution>1</resolution>
-              <min_angle>-0.349066</min_angle>
-              <max_angle>0.349066</max_angle>
+              <min_angle>-0.959931</min_angle>
+              <max_angle>0.261799</max_angle>
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>200.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
@@ -580,7 +607,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>1800</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -589,14 +616,19 @@
               <samples>16</samples>
               <resolution>1</resolution>
               <min_angle>0.0</min_angle>
-              <max_angle>1.221730</max_angle>
+              <max_angle>0.523599</max_angle>
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>120.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
@@ -609,7 +641,7 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>480</samples>
+              <samples>1800</samples>
               <resolution>1</resolution>
               <min_angle>-3.141593</min_angle>
               <max_angle>3.141593</max_angle>
@@ -618,14 +650,19 @@
               <samples>16</samples>
               <resolution>1</resolution>
               <min_angle>0.0</min_angle>
-              <max_angle>1.221730</max_angle>
+              <max_angle>0.523599</max_angle>
             </vertical>
           </scan>
           <range>
-            <min>0.3</min>
-            <max>120.0</max>
+            <min>0.2</min>
+            <max>150.0</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
         </lidar>
         <always_on>true</always_on>
         <visualize>false</visualize>
@@ -670,6 +707,7 @@
         <always_on>true</always_on>
         <visualize>false</visualize>
       </sensor>
+
     </link>
   </model>
 </sdf>

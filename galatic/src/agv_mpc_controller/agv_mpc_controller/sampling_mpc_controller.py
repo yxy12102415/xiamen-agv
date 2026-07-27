@@ -13,6 +13,8 @@ from std_msgs.msg import Float32
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import String
 
+from agv_mpc_controller.steering_geometry import front_two_axle_kinematics
+
 
 def yaw_from_quaternion(q):
     return math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
@@ -52,7 +54,7 @@ class SamplingMpcController(Node):
         self.declare_parameter("target_speed", 4.0)
         self.declare_parameter("vx_lim", 5.0)
         self.declare_parameter("vx_rate_lim", 0.35)
-        self.declare_parameter("steer_lim", 0.47822)
+        self.declare_parameter("steer_lim", 0.5229795759)
         self.declare_parameter("steer_rate_lim", 0.261799)
         self.declare_parameter("command_steer_rate_lim", 0.261799)
         self.declare_parameter("prediction_steer_rate_lim", 0.261799)
@@ -62,14 +64,20 @@ class SamplingMpcController(Node):
         self.declare_parameter("prediction_brake_delay", 0.05)
         self.declare_parameter("prediction_drive_time_constant", 0.18)
         self.declare_parameter("prediction_brake_time_constant", 0.18)
+        self.declare_parameter("prediction_drive_accel_dead_band", 0.02)
+        self.declare_parameter("prediction_brake_decel_dead_band", 0.05)
         self.declare_parameter("prediction_steer_delay", 0.02)
-        self.declare_parameter("steer_lim_front", 0.47822)
-        self.declare_parameter("steer_lim_rear", 0.39444)
-        self.declare_parameter("wheelbase_f", 4.479714)
-        self.declare_parameter("wheelbase_r", 4.479289)
-        self.declare_parameter("axle2_x", 2.596727)
-        self.declare_parameter("axle3_x", -2.570058)
-        self.declare_parameter("axle4_x", -4.479289)
+        self.declare_parameter("prediction_steer_backlash", 0.003491)
+        self.declare_parameter("steer_lim_front", 0.5229795759)
+        self.declare_parameter("steer_lim_rear", 0.4505604976)
+        self.declare_parameter("wheelbase_f", 4.65)
+        self.declare_parameter("wheelbase_r", 4.65)
+        self.declare_parameter("axle2_x", 3.0)
+        self.declare_parameter("axle3_x", -3.0)
+        self.declare_parameter("axle4_x", -4.65)
+        self.declare_parameter("wheel_tread", 2.381384)
+        self.declare_parameter("ackermann_axle1_wheelbase", 6.116611371515338)
+        self.declare_parameter("ackermann_axle2_wheelbase", 3.5527407651152627)
         self.declare_parameter("steering_mode", "axle12_steer")
         self.declare_parameter("two_axis_beta_limit", 0.22)
         self.declare_parameter("two_axis_lateral_gain", 0.12)
@@ -124,8 +132,17 @@ class SamplingMpcController(Node):
         self.prediction_brake_time_constant = max(
             1e-3, self.get_parameter("prediction_brake_time_constant").value
         )
+        self.prediction_drive_accel_dead_band = max(
+            0.0, self.get_parameter("prediction_drive_accel_dead_band").value
+        )
+        self.prediction_brake_decel_dead_band = max(
+            0.0, self.get_parameter("prediction_brake_decel_dead_band").value
+        )
         self.prediction_steer_delay = max(
             0.0, self.get_parameter("prediction_steer_delay").value
+        )
+        self.prediction_steer_backlash = max(
+            0.0, self.get_parameter("prediction_steer_backlash").value
         )
         self.steer_lim_front = self.get_parameter("steer_lim_front").value
         self.steer_lim_rear = self.get_parameter("steer_lim_rear").value
@@ -134,6 +151,13 @@ class SamplingMpcController(Node):
         self.axle2_x = self.get_parameter("axle2_x").value
         self.axle3_x = self.get_parameter("axle3_x").value
         self.axle4_x = self.get_parameter("axle4_x").value
+        self.wheel_tread = self.get_parameter("wheel_tread").value
+        self.ackermann_axle1_wheelbase = self.get_parameter(
+            "ackermann_axle1_wheelbase"
+        ).value
+        self.ackermann_axle2_wheelbase = self.get_parameter(
+            "ackermann_axle2_wheelbase"
+        ).value
         self.normal_steering_mode = self.get_parameter("steering_mode").value
         self.two_axis_beta_limit = self.get_parameter("two_axis_beta_limit").value
         self.two_axis_lateral_gain = self.get_parameter("two_axis_lateral_gain").value
@@ -541,25 +565,15 @@ class SamplingMpcController(Node):
 
     def axle12_kinematics(self, vx, steer_f, steer_r):
         axle_positions = [self.wheelbase_f, self.axle2_x, self.axle3_x, self.axle4_x]
-        axle_steers = [steer_f, steer_r, 0.0, 0.0]
-        sum_x = 0.0
-        sum_xx = 0.0
-        sum_y = 0.0
-        sum_xy = 0.0
-        for axle_x, axle_steer in zip(axle_positions, axle_steers):
-            desired_lateral_velocity = vx * math.tan(axle_steer)
-            sum_x += axle_x
-            sum_xx += axle_x * axle_x
-            sum_y += desired_lateral_velocity
-            sum_xy += axle_x * desired_lateral_velocity
-
-        axle_count = float(len(axle_positions))
-        denominator = axle_count * sum_xx - sum_x * sum_x
-        if abs(denominator) <= 1e-6:
-            return 0.0, 0.0
-        vy = (sum_y * sum_xx - sum_x * sum_xy) / denominator
-        omega = (axle_count * sum_xy - sum_x * sum_y) / denominator
-        return vy, omega
+        return front_two_axle_kinematics(
+            vx,
+            steer_f,
+            steer_r,
+            axle_positions,
+            self.wheel_tread,
+            self.ackermann_axle1_wheelbase,
+            self.ackermann_axle2_wheelbase,
+        )
 
     def lane_change_metrics(self, reference):
         future = self.sample_reference(reference["s"] + self.lane_change_preview_distance)
@@ -722,6 +736,10 @@ class SamplingMpcController(Node):
             return previous_value + active_ratio * (requested_value - previous_value)
 
         requested_accel = clamp(accel, -self.vx_rate_lim, self.vx_rate_lim)
+        if 0.0 < requested_accel < self.prediction_drive_accel_dead_band:
+            requested_accel = 0.0
+        elif -self.prediction_brake_decel_dead_band < requested_accel < 0.0:
+            requested_accel = 0.0
         accel_delay = (
             self.prediction_drive_delay
             if requested_accel >= ax
@@ -744,6 +762,11 @@ class SamplingMpcController(Node):
         delayed_steer = delayed_value(
             self.last_steer_cmd, target_steer, self.prediction_steer_delay
         )
+        steer_delta = delayed_steer - self.last_steer_cmd
+        if abs(steer_delta) <= self.prediction_steer_backlash:
+            delayed_steer = self.last_steer_cmd
+        else:
+            delayed_steer -= math.copysign(self.prediction_steer_backlash, steer_delta)
         beta_cmd = 0.0
         if command_reference is not None:
             beta_cmd = self.two_axis_beta_command(x, y, yaw, command_reference)

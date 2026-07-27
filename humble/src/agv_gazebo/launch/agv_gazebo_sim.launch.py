@@ -14,7 +14,9 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import EnvironmentVariable
 from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import PythonExpression
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -92,6 +94,8 @@ def generate_launch_description():
     initial_y = LaunchConfiguration("initial_y")
     initial_yaw = LaunchConfiguration("initial_yaw")
     steering_mode = LaunchConfiguration("steering_mode")
+    vehicle_load_profile = LaunchConfiguration("vehicle_load_profile")
+    surface_friction_coefficient = LaunchConfiguration("surface_friction_coefficient")
     imu_x = LaunchConfiguration("imu_x")
     imu_y = LaunchConfiguration("imu_y")
     imu_z = LaunchConfiguration("imu_z")
@@ -132,6 +136,162 @@ def generate_launch_description():
     enable_static_scene_markers = LaunchConfiguration("enable_static_scene_markers")
     enable_centerline_trajectory = LaunchConfiguration("enable_centerline_trajectory")
     enable_mpc = LaunchConfiguration("enable_mpc")
+    enable_remote_drive = LaunchConfiguration("enable_remote_drive")
+    enable_remote_protocol_mock = LaunchConfiguration("enable_remote_protocol_mock")
+    remote_protocol_local_host = LaunchConfiguration("remote_protocol_local_host")
+    remote_protocol_local_port = LaunchConfiguration("remote_protocol_local_port")
+    remote_protocol_vehicle_host = LaunchConfiguration("remote_protocol_vehicle_host")
+    remote_protocol_vehicle_port = LaunchConfiguration("remote_protocol_vehicle_port")
+    remote_protocol_endian = LaunchConfiguration("remote_protocol_endian")
+    remote_protocol_tlv_length_includes_header = LaunchConfiguration(
+        "remote_protocol_tlv_length_includes_header"
+    )
+    remote_network_delay_ms = LaunchConfiguration("remote_network_delay_ms")
+    remote_network_jitter_ms = LaunchConfiguration("remote_network_jitter_ms")
+    remote_network_loss_percent = LaunchConfiguration("remote_network_loss_percent")
+    remote_network_seed = LaunchConfiguration("remote_network_seed")
+    remote_video_delay_ms = LaunchConfiguration("remote_video_delay_ms")
+    remote_video_jitter_ms = LaunchConfiguration("remote_video_jitter_ms")
+    remote_video_loss_percent = LaunchConfiguration("remote_video_loss_percent")
+    remote_video_transport = LaunchConfiguration("remote_video_transport")
+    remote_video_encoder = LaunchConfiguration("remote_video_encoder")
+    remote_video_bitrate_kbps = LaunchConfiguration("remote_video_bitrate_kbps")
+    remote_video_direct_gz = LaunchConfiguration("remote_video_direct_gz")
+    remote_video_link_capacity_mbps = LaunchConfiguration(
+        "remote_video_link_capacity_mbps"
+    )
+    remote_network_delay_value = ParameterValue(remote_network_delay_ms, value_type=float)
+    remote_network_jitter_value = ParameterValue(remote_network_jitter_ms, value_type=float)
+    remote_network_loss_value = ParameterValue(
+        remote_network_loss_percent, value_type=float
+    )
+    remote_network_seed_value = ParameterValue(remote_network_seed, value_type=int)
+    remote_video_delay_value = ParameterValue(remote_video_delay_ms, value_type=float)
+    remote_video_jitter_value = ParameterValue(remote_video_jitter_ms, value_type=float)
+    remote_video_loss_value = ParameterValue(
+        remote_video_loss_percent, value_type=float
+    )
+    remote_video_bitrate_value = ParameterValue(
+        remote_video_bitrate_kbps, value_type=int
+    )
+    remote_video_per_camera_capacity_value = ParameterValue(
+        PythonExpression([remote_video_link_capacity_mbps, " / 6.0"]),
+        value_type=float,
+    )
+    remote_camera_names = (
+        "front",
+        "rear",
+        "left_front",
+        "left_rear",
+        "right_front",
+        "right_rear",
+    )
+    # The front view stays full resolution. Thumbnail views use a smaller
+    # transport image to keep the remote console responsive; Gazebo sensors
+    # themselves remain unchanged at 960x540.
+    remote_camera_output_sizes = {
+        "front": (960, 540),
+        "rear": (640, 360),
+        "left_front": (640, 360),
+        "left_rear": (640, 360),
+        "right_front": (640, 360),
+        "right_rear": (640, 360),
+    }
+    remote_camera_receiver_sizes = {
+        camera_name: (
+            ParameterValue(
+                PythonExpression([
+                    str(width),
+                    " if '",
+                    remote_video_direct_gz,
+                    "' == 'true' else 960",
+                ]),
+                value_type=int,
+            ),
+            ParameterValue(
+                PythonExpression([
+                    str(height),
+                    " if '",
+                    remote_video_direct_gz,
+                    "' == 'true' else 540",
+                ]),
+                value_type=int,
+            ),
+        )
+        for camera_name, (width, height) in remote_camera_output_sizes.items()
+    }
+    control_authority = LaunchConfiguration("control_authority")
+    enable_control_stack = PythonExpression(
+        [
+            "'",
+            enable_mpc,
+            "' == 'true' or '",
+            enable_remote_drive,
+            "' == 'true'",
+        ]
+    )
+    enable_remote_mock = PythonExpression(
+        [
+            "'",
+            enable_remote_drive,
+            "' == 'true' and '",
+            enable_remote_protocol_mock,
+            "' == 'true'",
+        ]
+    )
+    enable_remote_h264_video = PythonExpression(
+        [
+            "'",
+            enable_remote_drive,
+            "' == 'true' and '",
+            remote_video_transport,
+            "' == 'h264'",
+        ]
+    )
+    enable_remote_direct_h264 = PythonExpression(
+        [
+            "'",
+            enable_remote_drive,
+            "' == 'true' and '",
+            remote_video_transport,
+            "' == 'h264' and '",
+            remote_video_direct_gz,
+            "' == 'true'",
+        ]
+    )
+    enable_remote_python_h264 = PythonExpression(
+        [
+            "'",
+            enable_remote_drive,
+            "' == 'true' and '",
+            remote_video_transport,
+            "' == 'h264' and not ('",
+            remote_video_direct_gz,
+            "' == 'true')",
+        ]
+    )
+    enable_camera_topic_bridges = PythonExpression(
+        [
+            "'",
+            enable_camera_topics,
+            "' == 'true' and not ('",
+            enable_remote_drive,
+            "' == 'true' and '",
+            remote_video_transport,
+            "' == 'h264' and '",
+            remote_video_direct_gz,
+            "' == 'true')",
+        ]
+    )
+    enable_remote_raw_video = PythonExpression(
+        [
+            "'",
+            enable_remote_drive,
+            "' == 'true' and '",
+            remote_video_transport,
+            "' == 'raw'",
+        ]
+    )
     enable_vehicle_interface = LaunchConfiguration("enable_vehicle_interface")
     enable_simulated_chassis_feedback = LaunchConfiguration("enable_simulated_chassis_feedback")
     vehicle_interface_shadow_mode = LaunchConfiguration("vehicle_interface_shadow_mode")
@@ -143,6 +303,13 @@ def generate_launch_description():
     normal_lane_change_guard_epsilon = LaunchConfiguration("normal_lane_change_guard_epsilon")
     enable_error_log = LaunchConfiguration("enable_error_log")
     error_log_path = LaunchConfiguration("error_log_path")
+    vehicle_profile_file = PathJoinSubstitution(
+        [
+            FindPackageShare("agv_vehicle_model"),
+            "config",
+            PythonExpression(["'", vehicle_load_profile, "' + '.param.yaml'"]),
+        ]
+    )
     rviz_library_path = os.pathsep.join(
         path for path in os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep)
         if path and not path.startswith("/snap/")
@@ -190,12 +357,14 @@ def generate_launch_description():
         ("right_rear", "-3.75", "-1.65", "1.95", "-1.570796", "0.174533", "0.0"),
     ]
     camera_bridges = [
-        bridge
-        for camera_name, *_ in camera_frames
-        for bridge in (
-            f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-            f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+        (
+            camera_name,
+            [
+                f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
+                f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+            ],
         )
+        for camera_name, *_ in camera_frames
     ]
     if gazebo_packages["supports_service_bridge"]:
         system_bridges.append(
@@ -203,10 +372,10 @@ def generate_launch_description():
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.500", "1.490", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.500", "-1.490", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.500", "-1.490", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.500", "1.490", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
         ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
@@ -265,6 +434,8 @@ def generate_launch_description():
             DeclareLaunchArgument("initial_y", default_value="28.0013"),
             DeclareLaunchArgument("initial_yaw", default_value="-1.5708"),
             DeclareLaunchArgument("steering_mode", default_value="axle12_steer"),
+            DeclareLaunchArgument("vehicle_load_profile", default_value="empty"),
+            DeclareLaunchArgument("surface_friction_coefficient", default_value="0.8"),
             DeclareLaunchArgument("imu_x", default_value="0.0"),
             DeclareLaunchArgument("imu_y", default_value="0.0"),
             DeclareLaunchArgument("imu_z", default_value="0.60"),
@@ -323,6 +494,37 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_static_scene_markers", default_value="false"),
             DeclareLaunchArgument("enable_centerline_trajectory", default_value="true"),
             DeclareLaunchArgument("enable_mpc", default_value="true"),
+            DeclareLaunchArgument("enable_remote_drive", default_value="false"),
+            DeclareLaunchArgument("enable_remote_protocol_mock", default_value="true"),
+            DeclareLaunchArgument("remote_protocol_local_host", default_value="127.0.0.1"),
+            DeclareLaunchArgument("remote_protocol_local_port", default_value="46000"),
+            DeclareLaunchArgument("remote_protocol_vehicle_host", default_value="127.0.0.1"),
+            DeclareLaunchArgument("remote_protocol_vehicle_port", default_value="46001"),
+            DeclareLaunchArgument("remote_protocol_endian", default_value="little"),
+            DeclareLaunchArgument(
+                "remote_protocol_tlv_length_includes_header", default_value="false"
+            ),
+            DeclareLaunchArgument("remote_network_delay_ms", default_value="50.0"),
+            DeclareLaunchArgument("remote_network_jitter_ms", default_value="0.0"),
+            DeclareLaunchArgument("remote_network_loss_percent", default_value="0.0"),
+            DeclareLaunchArgument("remote_network_seed", default_value="7100"),
+            DeclareLaunchArgument(
+                "remote_video_delay_ms", default_value=remote_network_delay_ms
+            ),
+            DeclareLaunchArgument(
+                "remote_video_jitter_ms", default_value=remote_network_jitter_ms
+            ),
+            DeclareLaunchArgument(
+                "remote_video_loss_percent", default_value=remote_network_loss_percent
+            ),
+            DeclareLaunchArgument("remote_video_transport", default_value="h264"),
+            DeclareLaunchArgument("remote_video_encoder", default_value="h264_nvenc"),
+            DeclareLaunchArgument("remote_video_bitrate_kbps", default_value="1500"),
+            DeclareLaunchArgument("remote_video_direct_gz", default_value="true"),
+            DeclareLaunchArgument(
+                "remote_video_link_capacity_mbps", default_value="100.0"
+            ),
+            DeclareLaunchArgument("control_authority", default_value="AUTO"),
             DeclareLaunchArgument("enable_vehicle_interface", default_value="true"),
             DeclareLaunchArgument("enable_simulated_chassis_feedback", default_value="true"),
             DeclareLaunchArgument("vehicle_interface_shadow_mode", default_value="true"),
@@ -387,14 +589,17 @@ def generate_launch_description():
                 ],
                 condition=IfCondition(enable_lidar_topics),
             ),
-            Node(
-                package=gazebo_packages["bridge_package"],
-                executable="parameter_bridge",
-                name="agv_camera_bridge",
-                output="screen",
-                arguments=camera_bridges,
-                condition=IfCondition(enable_camera_topics),
-            ),
+            *[
+                Node(
+                    package=gazebo_packages["bridge_package"],
+                    executable="parameter_bridge",
+                    name=f"agv_camera_bridge_{camera_name}",
+                    output="screen",
+                    arguments=bridges,
+                    condition=IfCondition(enable_camera_topic_bridges),
+                )
+                for camera_name, bridges in camera_bridges
+            ],
             *[
                 Node(
                     package="agv_gazebo",
@@ -492,9 +697,10 @@ def generate_launch_description():
                         "asymmetric_rear_steer_ratio": -0.5,
                         "dt": 0.025,
                         "vx_lim": 5.0,
-                        "steer_lim": 0.47822,
-                        "steer_lim_front": 0.47822,
-                        "steer_lim_rear": 0.39444,
+                        # Axle-center limits corresponding to the supplied inner/outer wheel limits.
+                        "steer_lim": 0.5229795759,
+                        "steer_lim_front": 0.5229795759,
+                        "steer_lim_rear": 0.4505604976,
                         # From vehicle parameter sheet.
                         "vehicle_mass_kg": 23000.0,
                         # Estimated, not measured on the real vehicle.
@@ -509,12 +715,11 @@ def generate_launch_description():
                         "wheel_load_kg": 2875.0,
                         "front_normal_load_n": 112815.0,
                         "rear_normal_load_n": 112815.0,
-                        # Estimated from current Gazebo vehicle geometry; not yet matched to
-                        # the sheet values 1/4 axle=4.65 m and 2/3 axle=3.0 m.
-                        "axle1_x": 4.479714,
-                        "axle2_x": 2.596727,
-                        "axle3_x": -2.570058,
-                        "axle4_x": -4.479289,
+                        # From the supplied axle-to-center-of-gravity table.
+                        "axle1_x": 4.65,
+                        "axle2_x": 3.0,
+                        "axle3_x": -3.0,
+                        "axle4_x": -4.65,
                         # Per-axle split of the estimated front/rear tire stiffness above.
                         "axle1_cornering_stiffness_n_rad": 200000.0,
                         "axle2_cornering_stiffness_n_rad": 200000.0,
@@ -524,20 +729,19 @@ def generate_launch_description():
                         "axle2_normal_load_n": 56407.5,
                         "axle3_normal_load_n": 56407.5,
                         "axle4_normal_load_n": 56407.5,
-                        "tire_friction_coefficient": 0.8,
+                        "tire_friction_coefficient": surface_friction_coefficient,
                         "vx_rate_lim": 0.35,
                         "max_drive_accel": 0.35,
                         "max_brake_decel": 4.0,
                         "steer_rate_lim": 0.261799,
-                        "wheelbase_f": 4.479714,
-                        "wheelbase_r": 4.479289,
+                        "wheelbase_f": 4.65,
+                        "wheelbase_r": 4.65,
                         "wheel_tread": 2.381384,
                         "wheel_radius": 0.66,
                         "enable_ackermann_wheel_angles": True,
-                        # Back-calculated Ackermann equivalent wheelbases so the visual
-                        # inner/outer wheel angles match the sheet:
-                        # front 27.4 deg outer -> 33.0 deg inner,
-                        # rear 22.6 deg outer -> 30.0 deg inner.
+                        # Back-calculated Ackermann equivalent lengths for dynamics and TF:
+                        # axle 1: 27.4 deg outer -> 33.0 deg inner,
+                        # axle 2: 22.6 deg outer -> 30.0 deg inner.
                         "ackermann_front_wheelbase": 6.116611371515338,
                         "ackermann_rear_wheelbase": 3.5527407651152627,
                         # Estimated longitudinal dynamics and aero/rolling parameters.
@@ -548,10 +752,10 @@ def generate_launch_description():
                         "air_density_kg_m3": 1.225,
                         # Estimated wheel rotational inertia; the parameter sheet has no data.
                         "wheel_inertia_kgm2": 67.0824,
-                        "wheel_tf_front_x": 4.479714,
-                        "wheel_tf_mid_front_x": 2.596727,
-                        "wheel_tf_mid_rear_x": -2.570058,
-                        "wheel_tf_rear_x": -4.479289,
+                        "wheel_tf_front_x": 4.65,
+                        "wheel_tf_mid_front_x": 3.0,
+                        "wheel_tf_mid_rear_x": -3.0,
+                        "wheel_tf_rear_x": -4.65,
                         "wheel_tf_left_y": 1.190692,
                         "wheel_tf_right_y": -1.190692,
                         "wheel_tf_z": 0.66,
@@ -574,7 +778,8 @@ def generate_launch_description():
                         "use_ground_height": True,
                         "ground_height_offset": 0.0,
                         "publish_tf": True,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
             ),
             Node(
@@ -629,18 +834,18 @@ def generate_launch_description():
                         "steering_topic": "/vehicle/status/steering_status",
                         "front_steer_topic": "/agv/status/front_steer",
                         "rear_steer_topic": "/agv/status/rear_steer",
-                        "control_topic": "/control/command/control_cmd_raw",
-                        "two_axis_steer_topic": "/agv/control/two_axis_steer_cmd_raw",
-                        "gear_topic": "/control/command/gear_cmd_raw",
+                        "control_topic": "/control/command/auto/control_cmd",
+                        "two_axis_steer_topic": "/agv/control/auto/two_axis_steer_cmd",
+                        "gear_topic": "/control/command/auto/gear_cmd",
                         "control_rate": 30.0,
                         "prediction_dt": 0.2,
                         "horizon_steps": 12,
                         "target_speed": target_speed,
                         "vx_lim": 5.0,
                         "vx_rate_lim": 0.35,
-                        "steer_lim": 0.47822,
-                        "steer_lim_front": 0.47822,
-                        "steer_lim_rear": 0.39444,
+                        "steer_lim": 0.5229795759,
+                        "steer_lim_front": 0.5229795759,
+                        "steer_lim_rear": 0.4505604976,
                         "steer_rate_lim": 0.261799,
                         "command_steer_rate_lim": 0.261799,
                         "prediction_steer_rate_lim": 0.261799,
@@ -651,11 +856,14 @@ def generate_launch_description():
                         "prediction_drive_time_constant": 0.18,
                         "prediction_brake_time_constant": 0.18,
                         "prediction_steer_delay": 0.02,
-                        "wheelbase_f": 4.479714,
-                        "wheelbase_r": 4.479289,
-                        "axle2_x": 2.596727,
-                        "axle3_x": -2.570058,
-                        "axle4_x": -4.479289,
+                        "wheelbase_f": 4.65,
+                        "wheelbase_r": 4.65,
+                        "axle2_x": 3.0,
+                        "axle3_x": -3.0,
+                        "axle4_x": -4.65,
+                        "wheel_tread": 2.381384,
+                        "ackermann_axle1_wheelbase": 6.116611371515338,
+                        "ackermann_axle2_wheelbase": 3.5527407651152627,
                         "steering_mode": steering_mode,
                         "two_axis_beta_limit": 0.22,
                         "two_axis_lateral_gain": 0.12,
@@ -667,9 +875,198 @@ def generate_launch_description():
                         "enable_error_log": enable_error_log,
                         "error_log_path": error_log_path,
                         "closed_trajectory": True,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
                 condition=IfCondition(enable_mpc),
+            ),
+            Node(
+                package="agv_remote_protocol",
+                executable="domain_udp_gateway",
+                name="domain_udp_gateway",
+                output="screen",
+                parameters=[
+                    {
+                        "local_host": remote_protocol_local_host,
+                        "local_port": remote_protocol_local_port,
+                        "vehicle_host": remote_protocol_vehicle_host,
+                        "vehicle_port": remote_protocol_vehicle_port,
+                        "endian": remote_protocol_endian,
+                        "tlv_length_includes_header": remote_protocol_tlv_length_includes_header,
+                        "send_rate": 40.0,
+                        "network_delay_ms": remote_network_delay_value,
+                        "network_jitter_ms": remote_network_jitter_value,
+                        "network_loss_percent": remote_network_loss_value,
+                        "network_seed": remote_network_seed_value,
+                    }
+                ],
+                condition=IfCondition(enable_remote_drive),
+            ),
+            Node(
+                package="agv_remote_protocol",
+                executable="mock_br_controller",
+                name="mock_br_controller",
+                output="screen",
+                parameters=[
+                    {
+                        "local_host": remote_protocol_vehicle_host,
+                        "local_port": remote_protocol_vehicle_port,
+                        "domain_host": remote_protocol_local_host,
+                        "domain_port": remote_protocol_local_port,
+                        "endian": remote_protocol_endian,
+                        "tlv_length_includes_header": remote_protocol_tlv_length_includes_header,
+                        "update_rate": 40.0,
+                        "network_delay_ms": remote_network_delay_value,
+                        "network_jitter_ms": remote_network_jitter_value,
+                        "network_loss_percent": remote_network_loss_value,
+                        "network_seed": remote_network_seed_value,
+                    }
+                ],
+                condition=IfCondition(enable_remote_mock),
+            ),
+            *[
+                Node(
+                    package="agv_gazebo",
+                    executable="h264_video_receiver_node",
+                    name=f"h264_video_receiver_{camera_name}",
+                    output="screen",
+                    parameters=[
+                        {
+                            "camera_name": camera_name,
+                            "decoder_input_port": 15200 + camera_index,
+                            "width": remote_camera_receiver_sizes[camera_name][0],
+                            "height": remote_camera_receiver_sizes[camera_name][1],
+                            "frame_rate": 15.0,
+                            "configured_delay_ms": remote_video_delay_value,
+                            "stale_after_s": 1.0,
+                            "diagnostic_rate": 5.0,
+                        }
+                    ],
+                    condition=IfCondition(enable_remote_h264_video),
+                )
+                for camera_index, camera_name in enumerate(remote_camera_names)
+            ],
+            Node(
+                package="agv_remote_drive",
+                executable="remote_h264_udp_proxy",
+                name="remote_h264_udp_proxy",
+                output="screen",
+                parameters=[
+                    {
+                        "input_base_port": 15100,
+                        "output_base_port": 15200,
+                        "delay_ms": remote_video_delay_value,
+                        "jitter_ms": remote_video_jitter_value,
+                        "loss_percent": remote_video_loss_value,
+                        "seed": remote_network_seed_value,
+                        "capacity_mbps": remote_video_link_capacity_mbps,
+                        "max_queue_delay_ms": 250.0,
+                    }
+                ],
+                condition=IfCondition(enable_remote_direct_h264),
+            ),
+            *[
+                Node(
+                    package="agv_gazebo",
+                    executable="direct_h264_video_sender_node",
+                    name=f"direct_h264_video_sender_{camera_name}",
+                    output="screen",
+                    parameters=[
+                        {
+                            "camera_name": camera_name,
+                            "ignition_topic": f"/sensing/camera/{camera_name}/image",
+                            "udp_port": 15100 + camera_index,
+                            "encoder": (
+                                "libx264"
+                                if camera_name == "right_rear"
+                                else remote_video_encoder
+                            ),
+                            "frame_rate": 15.0,
+                            "bitrate_kbps": remote_video_bitrate_value,
+                            "output_width": remote_camera_output_sizes[camera_name][0],
+                            "output_height": remote_camera_output_sizes[camera_name][1],
+                        }
+                    ],
+                    condition=IfCondition(enable_remote_direct_h264),
+                )
+                for camera_index, camera_name in enumerate(remote_camera_names)
+            ],
+            *[
+                Node(
+                    package="agv_remote_drive",
+                    executable="remote_h264_video_link",
+                    name=f"remote_h264_video_link_{camera_name}",
+                    output="screen",
+                    parameters=[
+                        {
+                            "camera_name": camera_name,
+                            "decode_locally": False,
+                            # This GPU exposes five concurrent NVENC sessions. Reserve
+                            # those sessions for the front and four side/rear feeds so
+                            # all six cameras start deterministically.
+                            "encoder": (
+                                "libx264"
+                                if camera_name == "right_rear"
+                                else remote_video_encoder
+                            ),
+                            "frame_rate": 15.0,
+                            "bitrate_kbps": remote_video_bitrate_value,
+                            "network_delay_ms": remote_video_delay_value,
+                            "network_jitter_ms": remote_video_jitter_value,
+                            "network_loss_percent": remote_video_loss_value,
+                            "network_seed": ParameterValue(
+                                PythonExpression(
+                                    [remote_network_seed, f" + {camera_index}"]
+                                ),
+                                value_type=int,
+                            ),
+                            "link_capacity_mbps": remote_video_per_camera_capacity_value,
+                            "proxy_input_base_port": 15100 + camera_index,
+                            "decoder_input_base_port": 15200 + camera_index,
+                        }
+                    ],
+                    condition=IfCondition(enable_remote_python_h264),
+                )
+                for camera_index, camera_name in enumerate(remote_camera_names)
+            ],
+            Node(
+                package="agv_remote_drive",
+                executable="remote_video_network_emulator",
+                name="remote_video_network_emulator",
+                output="screen",
+                parameters=[
+                    {
+                        "network_delay_ms": remote_video_delay_value,
+                        "network_jitter_ms": remote_video_jitter_value,
+                        "network_loss_percent": remote_video_loss_value,
+                        "network_seed": remote_network_seed_value,
+                    }
+                ],
+                condition=IfCondition(enable_remote_raw_video),
+            ),
+            Node(
+                package="agv_remote_drive",
+                executable="remote_drive_command_mux",
+                name="remote_drive_command_mux",
+                output="screen",
+                parameters=[
+                    {
+                        "default_mode": control_authority,
+                        "input_timeout": 0.25,
+                        "deadman_timeout": 0.35,
+                        "switch_speed_limit": 0.05,
+                        "remote_max_velocity": 0.5,
+                        "remote_max_reverse_velocity": 0.5,
+                        "remote_max_acceleration": 0.2,
+                        "remote_max_brake_decel": 4.0,
+                        "front_steer_limit": 0.5229795759,
+                        "rear_steer_limit": 0.4505604976,
+                        "require_remote_video": True,
+                        "required_video_cameras": ["front"],
+                        "remote_video_timeout": 1.5,
+                    }
+                ],
+                condition=IfCondition(enable_control_stack),
             ),
             Node(
                 package="agv_safety_supervisor",
@@ -694,15 +1091,16 @@ def generate_launch_description():
                         "feedback_timeout": 0.5,
                         "require_autonomous_mode": True,
                         "max_velocity": 5.0,
+                        "max_reverse_velocity": 0.5,
                         "max_drive_accel": 0.35,
                         "max_brake_decel": 4.0,
-                        "front_steer_limit": 0.47822,
-                        "rear_steer_limit": 0.39444,
+                        "front_steer_limit": 0.5229795759,
+                        "rear_steer_limit": 0.4505604976,
                         "stop_acceleration": -1.0,
                         "stop_gear": "drive",
                     }
                 ],
-                condition=IfCondition(enable_mpc),
+                condition=IfCondition(enable_control_stack),
             ),
             Node(
                 package="agv_vehicle_interface",
@@ -724,7 +1122,7 @@ def generate_launch_description():
                         "max_velocity": 5.0,
                         "max_acceleration": 0.35,
                         "max_brake_decel": 4.0,
-                        "max_steer": 0.47822,
+                        "max_steer": 0.5229795759,
                     }
                 ],
                 condition=IfCondition(enable_vehicle_interface),
@@ -747,7 +1145,8 @@ def generate_launch_description():
                         "max_brake_pressure_bar": 160.0,
                         "max_brake_decel": 4.0,
                         "max_drive_accel": 0.35,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
                 condition=IfCondition(enable_simulated_chassis_feedback),
             ),

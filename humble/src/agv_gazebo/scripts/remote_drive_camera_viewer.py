@@ -29,12 +29,12 @@ class RemoteDriveCameraViewer(Node):
         self.stale_after_s = float(self.declare_parameter("stale_after_s", 1.0).value)
 
         self.cameras = [
-            ("front", "/sensing/camera/front/image"),
-            ("left_front", "/sensing/camera/left_front/image"),
-            ("right_front", "/sensing/camera/right_front/image"),
-            ("left_rear", "/sensing/camera/left_rear/image"),
-            ("right_rear", "/sensing/camera/right_rear/image"),
-            ("rear", "/sensing/camera/rear/image"),
+            ("front", "/remote/video/front/image"),
+            ("left_front", "/remote/video/left_front/image"),
+            ("right_front", "/remote/video/right_front/image"),
+            ("left_rear", "/remote/video/left_rear/image"),
+            ("right_rear", "/remote/video/right_rear/image"),
+            ("rear", "/remote/video/rear/image"),
         ]
         self.frames = {}
         self.last_stamp = {}

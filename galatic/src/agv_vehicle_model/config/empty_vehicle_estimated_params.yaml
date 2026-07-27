@@ -16,11 +16,21 @@ geometry:
     value: 2.381384
     source: estimated_from_igv_model
   axle_positions_m:
-    axle1_x: 4.479714
-    axle2_x: 2.596727
-    axle3_x: -2.570058
-    axle4_x: -4.479289
-    source: estimated_from_igv_model
+    axle1_x: 4.65
+    axle2_x: 3.0
+    axle3_x: -3.0
+    axle4_x: -4.65
+    source: given_table_axle_to_center_of_gravity
+  steering_geometry:
+    steering_axles: [1, 2]
+    fixed_axles: [3, 4]
+    wheel_model_count: 8
+    axle1_center_limit_rad: 0.5229795759
+    axle2_center_limit_rad: 0.4505604976
+    axle1_equivalent_ackermann_wheelbase_m: 6.1166113715
+    axle2_equivalent_ackermann_wheelbase_m: 3.5527407651
+    source: back_calculated_from_given_inner_outer_wheel_limits
+    note: "Center limits reproduce axle1 33.0/27.4 deg and axle2 30.0/22.6 deg inner/outer angles at the estimated tread; equivalent Ackermann wheelbases are not measured mechanical dimensions."
 
 mass_properties:
   mass_kg:
@@ -29,6 +39,12 @@ mass_properties:
   center_of_gravity_height_m:
     value: 0.8
     source: estimated_empty_vehicle_low_platform
+  center_of_gravity_x_m:
+    value: 0.0
+    source: estimated_centered_empty_vehicle
+  center_of_gravity_y_m:
+    value: 0.0
+    source: estimated_centered_empty_vehicle
   yaw_inertia_kgm2:
     value: 432363.7513
     source: estimated_uniform_rectangle_corrected_from_3d_geometry
@@ -109,6 +125,66 @@ actuators:
   steer_dead_band_rad:
     value: 0.005236
     source: estimated_small_deadband_0p3deg
+  steer_backlash_rad:
+    value: 0.003491
+    source: estimated_mechanical_play_0p2deg
+  drive_accel_dead_band_mps2:
+    value: 0.02
+    source: estimated_command_dead_zone
+  brake_decel_dead_band_mps2:
+    value: 0.05
+    source: estimated_command_dead_zone
+  max_drive_power_kw:
+    value: 280.0
+    source: same_class_kalmar_fastcharge_agv_reference
+
+suspension_estimate:
+  architecture:
+    value: parallel_rubber_and_hydropneumatic_springs
+    source: zpmc_sjtu_container_transfer_agv_paper_architecture_only
+  active_in_planar_vehicle_model: false
+  target_body_natural_frequency_hz:
+    value: 1.2
+    source: engineering_initial_value_not_zpmc_measured
+  target_damping_ratio:
+    value: 0.30
+    source: engineering_initial_value_not_zpmc_measured
+  calculation: "K_total=m*(2*pi*f)^2; K_wheel=K_total/8; C_wheel=2*zeta*(m/8)*(2*pi*f)"
+  profiles:
+    empty:
+      total_vertical_stiffness_n_m: 1307525.2
+      per_wheel_vertical_stiffness_n_m: 163440.6
+      per_wheel_damping_n_s_m: 13006.2
+    payload_20t:
+      total_vertical_stiffness_n_m: 2444503.6
+      per_wheel_vertical_stiffness_n_m: 305563.0
+      per_wheel_damping_n_s_m: 24315.9
+    payload_30_48t:
+      total_vertical_stiffness_n_m: 3040280.3
+      per_wheel_vertical_stiffness_n_m: 380035.0
+      per_wheel_damping_n_s_m: 30242.2
+    rated_70t:
+      total_vertical_stiffness_n_m: 5286949.7
+      per_wheel_vertical_stiffness_n_m: 660868.7
+      per_wheel_damping_n_s_m: 52590.3
+  note: "Design initialization only. A hydropneumatic suspension is nonlinear; replace these equivalent linear values with pressure-travel test data."
+
+estimate_uncertainty:
+  center_of_gravity_height: low_confidence
+  yaw_inertia: low_confidence
+  uniform_axle_load_distribution: low_confidence
+  tire_cornering_stiffness: low_confidence
+  dry_surface_friction: medium_confidence_scenario_value
+  actuator_delays_and_nonlinearities: low_confidence
+  suspension_stiffness_and_damping: low_confidence_design_initialization
+
+load_profiles:
+  files:
+    - empty.param.yaml
+    - payload_20t.param.yaml
+    - payload_30_48t.param.yaml
+    - rated_70t.param.yaml
+  note: "All loaded values are estimates; see docs/estimated_vehicle_dynamics.md."
 
 aero:
   aerodynamic_drag_coefficient:

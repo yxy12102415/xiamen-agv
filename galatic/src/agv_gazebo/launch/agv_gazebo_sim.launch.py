@@ -98,6 +98,8 @@ def generate_launch_description():
     initial_y = LaunchConfiguration("initial_y")
     initial_yaw = LaunchConfiguration("initial_yaw")
     steering_mode = LaunchConfiguration("steering_mode")
+    vehicle_load_profile = LaunchConfiguration("vehicle_load_profile")
+    surface_friction_coefficient = LaunchConfiguration("surface_friction_coefficient")
     imu_x = LaunchConfiguration("imu_x")
     imu_y = LaunchConfiguration("imu_y")
     imu_z = LaunchConfiguration("imu_z")
@@ -138,6 +140,7 @@ def generate_launch_description():
     enable_centerline_trajectory = LaunchConfiguration("enable_centerline_trajectory")
     enable_mpc = LaunchConfiguration("enable_mpc")
     enable_vehicle_interface = LaunchConfiguration("enable_vehicle_interface")
+    enable_simulated_chassis_feedback = LaunchConfiguration("enable_simulated_chassis_feedback")
     vehicle_interface_shadow_mode = LaunchConfiguration("vehicle_interface_shadow_mode")
     vehicle_interface_autonomous_enable = LaunchConfiguration("vehicle_interface_autonomous_enable")
     vehicle_interface_mock_feedback = LaunchConfiguration("vehicle_interface_mock_feedback")
@@ -147,6 +150,13 @@ def generate_launch_description():
     normal_lane_change_guard_epsilon = LaunchConfiguration("normal_lane_change_guard_epsilon")
     enable_error_log = LaunchConfiguration("enable_error_log")
     error_log_path = LaunchConfiguration("error_log_path")
+    vehicle_profile_file = PathJoinSubstitution(
+        [
+            FindPackageShare("agv_vehicle_model"),
+            "config",
+            PythonExpression(["'", vehicle_load_profile, "' + '.param.yaml'"]),
+        ]
+    )
     rviz_library_path = os.pathsep.join(
         path for path in os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep)
         if path and not path.startswith("/snap/")
@@ -197,10 +207,10 @@ def generate_launch_description():
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.500", "1.490", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.500", "-1.490", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.500", "-1.490", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.500", "1.490", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
         ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
@@ -266,6 +276,8 @@ def generate_launch_description():
             DeclareLaunchArgument("initial_y", default_value="28.0013"),
             DeclareLaunchArgument("initial_yaw", default_value="-1.5708"),
             DeclareLaunchArgument("steering_mode", default_value="axle12_steer"),
+            DeclareLaunchArgument("vehicle_load_profile", default_value="empty"),
+            DeclareLaunchArgument("surface_friction_coefficient", default_value="0.8"),
             DeclareLaunchArgument("imu_x", default_value="0.0"),
             DeclareLaunchArgument("imu_y", default_value="0.0"),
             DeclareLaunchArgument("imu_z", default_value="0.60"),
@@ -324,6 +336,7 @@ def generate_launch_description():
             DeclareLaunchArgument("enable_centerline_trajectory", default_value="true"),
             DeclareLaunchArgument("enable_mpc", default_value="true"),
             DeclareLaunchArgument("enable_vehicle_interface", default_value="true"),
+            DeclareLaunchArgument("enable_simulated_chassis_feedback", default_value="true"),
             DeclareLaunchArgument("vehicle_interface_shadow_mode", default_value="true"),
             DeclareLaunchArgument("vehicle_interface_autonomous_enable", default_value="false"),
             DeclareLaunchArgument("vehicle_interface_mock_feedback", default_value="false"),
@@ -493,9 +506,10 @@ def generate_launch_description():
                         "asymmetric_rear_steer_ratio": -0.5,
                         "dt": 0.025,
                         "vx_lim": 5.0,
-                        "steer_lim": 0.47822,
-                        "steer_lim_front": 0.47822,
-                        "steer_lim_rear": 0.39444,
+                        # Axle-center limits corresponding to the supplied inner/outer wheel limits.
+                        "steer_lim": 0.5229795759,
+                        "steer_lim_front": 0.5229795759,
+                        "steer_lim_rear": 0.4505604976,
                         # From vehicle parameter sheet.
                         "vehicle_mass_kg": 23000.0,
                         # Estimated, not measured on the real vehicle.
@@ -510,12 +524,11 @@ def generate_launch_description():
                         "wheel_load_kg": 2875.0,
                         "front_normal_load_n": 112815.0,
                         "rear_normal_load_n": 112815.0,
-                        # Estimated from current Gazebo vehicle geometry; not yet matched to
-                        # the sheet values 1/4 axle=4.65 m and 2/3 axle=3.0 m.
-                        "axle1_x": 4.479714,
-                        "axle2_x": 2.596727,
-                        "axle3_x": -2.570058,
-                        "axle4_x": -4.479289,
+                        # From the supplied axle-to-center-of-gravity table.
+                        "axle1_x": 4.65,
+                        "axle2_x": 3.0,
+                        "axle3_x": -3.0,
+                        "axle4_x": -4.65,
                         # Per-axle split of the estimated front/rear tire stiffness above.
                         "axle1_cornering_stiffness_n_rad": 200000.0,
                         "axle2_cornering_stiffness_n_rad": 200000.0,
@@ -525,20 +538,19 @@ def generate_launch_description():
                         "axle2_normal_load_n": 56407.5,
                         "axle3_normal_load_n": 56407.5,
                         "axle4_normal_load_n": 56407.5,
-                        "tire_friction_coefficient": 0.8,
+                        "tire_friction_coefficient": surface_friction_coefficient,
                         "vx_rate_lim": 0.35,
                         "max_drive_accel": 0.35,
                         "max_brake_decel": 4.0,
                         "steer_rate_lim": 0.261799,
-                        "wheelbase_f": 4.479714,
-                        "wheelbase_r": 4.479289,
+                        "wheelbase_f": 4.65,
+                        "wheelbase_r": 4.65,
                         "wheel_tread": 2.381384,
                         "wheel_radius": 0.66,
                         "enable_ackermann_wheel_angles": True,
-                        # Back-calculated Ackermann equivalent wheelbases so the visual
-                        # inner/outer wheel angles match the sheet:
-                        # front 27.4 deg outer -> 33.0 deg inner,
-                        # rear 22.6 deg outer -> 30.0 deg inner.
+                        # Back-calculated Ackermann equivalent lengths for dynamics and TF:
+                        # axle 1: 27.4 deg outer -> 33.0 deg inner,
+                        # axle 2: 22.6 deg outer -> 30.0 deg inner.
                         "ackermann_front_wheelbase": 6.116611371515338,
                         "ackermann_rear_wheelbase": 3.5527407651152627,
                         # Estimated longitudinal dynamics and aero/rolling parameters.
@@ -549,10 +561,10 @@ def generate_launch_description():
                         "air_density_kg_m3": 1.225,
                         # Estimated wheel rotational inertia; the parameter sheet has no data.
                         "wheel_inertia_kgm2": 67.0824,
-                        "wheel_tf_front_x": 4.479714,
-                        "wheel_tf_mid_front_x": 2.596727,
-                        "wheel_tf_mid_rear_x": -2.570058,
-                        "wheel_tf_rear_x": -4.479289,
+                        "wheel_tf_front_x": 4.65,
+                        "wheel_tf_mid_front_x": 3.0,
+                        "wheel_tf_mid_rear_x": -3.0,
+                        "wheel_tf_rear_x": -4.65,
                         "wheel_tf_left_y": 1.190692,
                         "wheel_tf_right_y": -1.190692,
                         "wheel_tf_z": 0.66,
@@ -575,7 +587,8 @@ def generate_launch_description():
                         "use_ground_height": True,
                         "ground_height_offset": 0.0,
                         "publish_tf": True,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
             ),
             Node(
@@ -639,9 +652,9 @@ def generate_launch_description():
                         "target_speed": target_speed,
                         "vx_lim": 5.0,
                         "vx_rate_lim": 0.35,
-                        "steer_lim": 0.47822,
-                        "steer_lim_front": 0.47822,
-                        "steer_lim_rear": 0.39444,
+                        "steer_lim": 0.5229795759,
+                        "steer_lim_front": 0.5229795759,
+                        "steer_lim_rear": 0.4505604976,
                         "steer_rate_lim": 0.261799,
                         "command_steer_rate_lim": 0.261799,
                         "prediction_steer_rate_lim": 0.261799,
@@ -652,11 +665,14 @@ def generate_launch_description():
                         "prediction_drive_time_constant": 0.18,
                         "prediction_brake_time_constant": 0.18,
                         "prediction_steer_delay": 0.02,
-                        "wheelbase_f": 4.479714,
-                        "wheelbase_r": 4.479289,
-                        "axle2_x": 2.596727,
-                        "axle3_x": -2.570058,
-                        "axle4_x": -4.479289,
+                        "wheelbase_f": 4.65,
+                        "wheelbase_r": 4.65,
+                        "axle2_x": 3.0,
+                        "axle3_x": -3.0,
+                        "axle4_x": -4.65,
+                        "wheel_tread": 2.381384,
+                        "ackermann_axle1_wheelbase": 6.116611371515338,
+                        "ackermann_axle2_wheelbase": 3.5527407651152627,
                         "steering_mode": steering_mode,
                         "two_axis_beta_limit": 0.22,
                         "two_axis_lateral_gain": 0.12,
@@ -668,7 +684,8 @@ def generate_launch_description():
                         "enable_error_log": enable_error_log,
                         "error_log_path": error_log_path,
                         "closed_trajectory": True,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
                 condition=IfCondition(enable_mpc),
             ),
@@ -695,10 +712,11 @@ def generate_launch_description():
                         "feedback_timeout": 0.5,
                         "require_autonomous_mode": True,
                         "max_velocity": 5.0,
+                        "max_reverse_velocity": 0.5,
                         "max_drive_accel": 0.35,
                         "max_brake_decel": 4.0,
-                        "front_steer_limit": 0.47822,
-                        "rear_steer_limit": 0.39444,
+                        "front_steer_limit": 0.5229795759,
+                        "rear_steer_limit": 0.4505604976,
                         "stop_acceleration": -1.0,
                         "stop_gear": "drive",
                     }
@@ -725,10 +743,33 @@ def generate_launch_description():
                         "max_velocity": 5.0,
                         "max_acceleration": 0.35,
                         "max_brake_decel": 4.0,
-                        "max_steer": 0.47822,
+                        "max_steer": 0.5229795759,
                     }
                 ],
                 condition=IfCondition(enable_vehicle_interface),
+            ),
+            Node(
+                package="agv_vehicle_interface",
+                executable="simulated_chassis_feedback_node",
+                name="simulated_chassis_feedback",
+                output="screen",
+                parameters=[
+                    {
+                        "odom_topic": "/localization/kinematic_state",
+                        "control_topic": "/control/command/control_cmd",
+                        "front_steer_topic": "/agv/status/front_steer",
+                        "rear_steer_topic": "/agv/status/rear_steer",
+                        "gear_status_topic": "/vehicle/status/gear_status",
+                        "control_mode_topic": "/vehicle/status/control_mode",
+                        "emergency_stop_topic": "/agv/safety/emergency_stop",
+                        "wheel_radius": 0.66,
+                        "max_brake_pressure_bar": 160.0,
+                        "max_brake_decel": 4.0,
+                        "max_drive_accel": 0.35,
+                    },
+                    vehicle_profile_file,
+                ],
+                condition=IfCondition(enable_simulated_chassis_feedback),
             ),
             Node(
                 package="agv_gazebo",

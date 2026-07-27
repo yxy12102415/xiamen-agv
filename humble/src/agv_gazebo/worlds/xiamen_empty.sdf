@@ -8,6 +8,12 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
+    <!-- Vehicle dynamics run in ROS; Gazebo handles pose, contacts, and sensors. -->
+    <physics name="agv_visualization_physics" type="ignored">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
     <gravity>0 0 -9.81</gravity>
     <magnetic_field>6.0e-6 2.3e-5 -4.2e-5</magnetic_field>
     <atmosphere type="adiabatic"/>

@@ -38,6 +38,7 @@ class SafetySupervisorNode(Node):
         self.declare_parameter("feedback_timeout", 0.5)
         self.declare_parameter("require_autonomous_mode", True)
         self.declare_parameter("max_velocity", 5.0)
+        self.declare_parameter("max_reverse_velocity", 0.5)
         self.declare_parameter("max_drive_accel", 0.35)
         self.declare_parameter("max_brake_decel", 1.0)
         self.declare_parameter("front_steer_limit", 0.47822)
@@ -50,6 +51,7 @@ class SafetySupervisorNode(Node):
         self.feedback_timeout = float(self.get_parameter("feedback_timeout").value)
         self.require_autonomous_mode = bool(self.get_parameter("require_autonomous_mode").value)
         self.max_velocity = float(self.get_parameter("max_velocity").value)
+        self.max_reverse_velocity = float(self.get_parameter("max_reverse_velocity").value)
         self.max_drive_accel = float(self.get_parameter("max_drive_accel").value)
         self.max_brake_decel = float(self.get_parameter("max_brake_decel").value)
         self.front_steer_limit = float(self.get_parameter("front_steer_limit").value)
@@ -65,7 +67,6 @@ class SafetySupervisorNode(Node):
         self.front_steer = 0.0
         self.rear_steer = 0.0
         self.emergency_stop = False
-
         self.raw_control_time = None
         self.raw_two_axis_time = None
         self.raw_gear_time = None
@@ -109,7 +110,6 @@ class SafetySupervisorNode(Node):
         self.create_subscription(
             Bool, self.get_parameter("emergency_stop_topic").value, self.on_emergency_stop, 1
         )
-
         self.control_pub = self.create_publisher(
             Control, self.get_parameter("safe_control_topic").value, 1
         )
@@ -210,11 +210,23 @@ class SafetySupervisorNode(Node):
 
     def publish_stop(self, faults):
         stamp = stamp_now(self)
+        actual_velocity = 0.0
+        if self.velocity_status is not None:
+            actual_velocity = float(self.velocity_status.longitudinal_velocity)
+        elif self.odom is not None:
+            actual_velocity = float(self.odom.twist.twist.linear.x)
+        if actual_velocity > 0.02:
+            stop_acceleration = self.stop_acceleration
+        elif actual_velocity < -0.02:
+            stop_acceleration = min(abs(self.stop_acceleration), self.max_drive_accel)
+        else:
+            stop_acceleration = 0.0
+
         control = Control()
         control.stamp = stamp
         control.longitudinal.stamp = stamp
         control.longitudinal.velocity = 0.0
-        control.longitudinal.acceleration = self.stop_acceleration
+        control.longitudinal.acceleration = stop_acceleration
         control.longitudinal.is_defined_acceleration = True
         control.lateral.stamp = stamp
         control.lateral.steering_tire_angle = clamp(
@@ -229,7 +241,7 @@ class SafetySupervisorNode(Node):
             float(clamp(self.front_steer, -self.front_steer_limit, self.front_steer_limit)),
             float(clamp(self.rear_steer, -self.rear_steer_limit, self.rear_steer_limit)),
             0.0,
-            float(self.stop_acceleration),
+            float(stop_acceleration),
         ]
         self.two_axis_pub.publish(two_axis)
         self.gear_pub.publish(self.stop_gear_command())
@@ -241,7 +253,11 @@ class SafetySupervisorNode(Node):
         control = Control()
         control.stamp = stamp
         control.longitudinal.stamp = stamp
-        velocity = clamp(float(source.longitudinal.velocity), 0.0, self.max_velocity)
+        velocity = clamp(
+            float(source.longitudinal.velocity),
+            -self.max_reverse_velocity,
+            self.max_velocity,
+        )
         acceleration = 0.0
         if source.longitudinal.is_defined_acceleration:
             acceleration = clamp(
@@ -281,7 +297,7 @@ class SafetySupervisorNode(Node):
         two_axis.data = [
             float(clamp(front, -self.front_steer_limit, self.front_steer_limit)),
             float(clamp(rear, -self.rear_steer_limit, self.rear_steer_limit)),
-            float(clamp(velocity, 0.0, self.max_velocity)),
+            float(clamp(velocity, -self.max_reverse_velocity, self.max_velocity)),
             float(clamp(acceleration, -self.max_brake_decel, self.max_drive_accel)),
         ]
         return two_axis

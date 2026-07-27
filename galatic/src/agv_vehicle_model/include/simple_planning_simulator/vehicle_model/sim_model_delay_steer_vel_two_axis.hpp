@@ -39,13 +39,17 @@ public:
     const std::array<double, 4> & axle_positions_m,
     const std::array<double, 4> & axle_cornering_stiffness_n_rad,
     const std::array<double, 4> & axle_normal_loads_n, double tire_friction_coefficient,
+    double wheel_tread_m, double ackermann_axle1_wheelbase_m,
+    double ackermann_axle2_wheelbase_m, bool enable_ackermann_wheel_angles,
     double center_of_gravity_height_m, double rolling_resistance_coefficient,
     double aerodynamic_drag_coefficient, double frontal_area_m2, double air_density_kg_m3,
     double wheel_radius_m, double wheel_inertia_kgm2, int wheel_count,
     double dt, double vx_delay, double vx_time_constant,
     double drive_delay, double brake_delay, double drive_time_constant, double brake_time_constant,
-    double steer_delay, double steer_time_constant, double steer_dead_band, double steer_bias,
-    bool all_wheel_drive);
+    double drive_accel_dead_band, double brake_decel_dead_band, double max_drive_force_n,
+    double max_drive_power_kw, double steer_delay, double steer_time_constant,
+    double steer_dead_band, double steer_backlash, double steer_bias, bool all_wheel_drive,
+    bool use_smooth_tire_saturation);
 
   /**
    * @brief destructor
@@ -147,6 +151,10 @@ private:
   const std::array<double, 4> axle_cornering_stiffness_n_rad_;
   const std::array<double, 4> axle_normal_loads_n_;
   const double tire_friction_coefficient_;
+  const double wheel_tread_m_;
+  const double ackermann_axle1_wheelbase_m_;
+  const double ackermann_axle2_wheelbase_m_;
+  const bool enable_ackermann_wheel_angles_;
   const double center_of_gravity_height_m_;
   const double rolling_resistance_coefficient_;
   const double aerodynamic_drag_coefficient_;
@@ -160,7 +168,12 @@ private:
   const double brake_delay_;
   const double drive_time_constant_;
   const double brake_time_constant_;
+  const double drive_accel_dead_band_;
+  const double brake_decel_dead_band_;
+  const double max_drive_force_n_;
+  const double max_drive_power_w_;
   const bool all_wheel_drive_;
+  const bool use_smooth_tire_saturation_;
   const bool enable_lateral_dynamics_;
   double prev_vx_ = 0.0;
 
@@ -181,10 +194,14 @@ private:
   const double steer_delay_;  //!< @brief time delay for angular-velocity command [s]
   const double steer_time_constant_;
   const double steer_dead_band_;  //!< @brief dead band for steering angle [rad]
+  const double steer_backlash_;   //!< @brief mechanical steering play width [rad]
   const double steer_bias_;       //!< @brief steering angle bias [rad]
+  double effective_steer_cmd_f_ = 0.0;
+  double effective_steer_cmd_r_ = 0.0;
 
   void initializeInputQueue(const double & dt);
   double resistanceForce(const double vx, const double requested_accel) const;
+  double applySteeringBacklash(const double command, double & effective_command) const;
 };
 
 }  // namespace autoware::simulator::simple_planning_simulator

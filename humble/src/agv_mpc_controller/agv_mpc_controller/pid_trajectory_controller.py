@@ -77,14 +77,14 @@ class PidTrajectoryController(Node):
         self.declare_parameter("max_drive_accel", 0.35)
         self.declare_parameter("max_brake_decel", 0.35)
         self.declare_parameter("stop_brake_decel", 1.0)
-        self.declare_parameter("steer_lim", 0.47822)
+        self.declare_parameter("steer_lim", 0.5229795759)
         self.declare_parameter("steer_rate_lim", 0.261799)
-        self.declare_parameter("wheelbase_f", 4.479714)
-        self.declare_parameter("wheelbase_r", 4.479289)
-        self.declare_parameter("axle2_x", 2.596727)
+        self.declare_parameter("wheelbase_f", 4.65)
+        self.declare_parameter("wheelbase_r", 4.65)
+        self.declare_parameter("axle2_x", 3.0)
         self.declare_parameter("steering_mode", "independent_4ws")
         self.declare_parameter("asymmetric_rear_steer_ratio", -0.5)
-        self.declare_parameter("rear_steer_lim", 0.39444)
+        self.declare_parameter("rear_steer_lim", 0.4505604976)
         self.declare_parameter("independent_beta_limit", 0.22)
         self.declare_parameter("independent_curvature_feedback_limit", 0.045)
         self.declare_parameter("independent_rear_steer_scale", 0.75)
@@ -539,7 +539,7 @@ class PidTrajectoryController(Node):
 
     def curvature_from_steer(self, steer):
         rear_steer = clamp(
-            steer * self.rear_steer_ratio(), -0.39444, 0.39444
+            steer * self.rear_steer_ratio(), -self.rear_steer_lim, self.rear_steer_lim
         )
         beta_numerator = self.wheelbase_f * math.tan(
             rear_steer

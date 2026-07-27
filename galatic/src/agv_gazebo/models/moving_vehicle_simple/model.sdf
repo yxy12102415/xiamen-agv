@@ -114,7 +114,7 @@
       </visual>
 
       <visual name="axle1_left_wheel">
-        <pose>4.479714 1.62 0.66 1.5708 0 0</pose>
+        <pose>4.65 1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -128,7 +128,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle1_right_wheel">
-        <pose>4.479714 -1.62 0.66 1.5708 0 0</pose>
+        <pose>4.65 -1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -142,7 +142,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle2_left_wheel">
-        <pose>2.596727 1.62 0.66 1.5708 0 0</pose>
+        <pose>3.0 1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -156,7 +156,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle2_right_wheel">
-        <pose>2.596727 -1.62 0.66 1.5708 0 0</pose>
+        <pose>3.0 -1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -170,7 +170,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle3_left_wheel">
-        <pose>-2.570058 1.62 0.66 1.5708 0 0</pose>
+        <pose>-3.0 1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -184,7 +184,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle3_right_wheel">
-        <pose>-2.570058 -1.62 0.66 1.5708 0 0</pose>
+        <pose>-3.0 -1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -198,7 +198,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle4_left_wheel">
-        <pose>-4.479289 1.62 0.66 1.5708 0 0</pose>
+        <pose>-4.65 1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>
@@ -212,7 +212,7 @@
         <cast_shadows>false</cast_shadows>
       </visual>
       <visual name="axle4_right_wheel">
-        <pose>-4.479289 -1.62 0.66 1.5708 0 0</pose>
+        <pose>-4.65 -1.62 0.66 1.5708 0 0</pose>
         <geometry>
           <cylinder>
             <radius>0.66</radius>

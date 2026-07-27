@@ -1,5 +1,7 @@
 #include "simple_planning_simulator/vehicle_model/sim_model_delay_steer_vel_two_axis.hpp"
 
+#include "agv_vehicle_model/steering_geometry.hpp"
+
 #include <autoware_adapi_v1_msgs/msg/operation_mode_state.hpp>
 #include <autoware_adapi_v1_msgs/srv/change_operation_mode.hpp>
 #include <autoware_control_msgs/msg/control.hpp>
@@ -69,26 +71,6 @@ geometry_msgs::msg::Quaternion yaw_to_quaternion(const double yaw)
   return q;
 }
 
-std::pair<double, double> ackermann_left_right_steer(
-  const double axle_steer, const double equivalent_wheelbase, const double wheel_tread)
-{
-  const double abs_steer = std::abs(axle_steer);
-  if (abs_steer < 1.0e-6 || equivalent_wheelbase <= 1.0e-6 || wheel_tread <= 1.0e-6) {
-    return {axle_steer, axle_steer};
-  }
-
-  const double sign = std::copysign(1.0, axle_steer);
-  const double outer_steer = abs_steer;
-  const double outer_radius = equivalent_wheelbase / std::tan(outer_steer);
-  const double inner_radius = std::max(1.0e-3, outer_radius - wheel_tread);
-  const double inner_steer = std::atan(equivalent_wheelbase / inner_radius);
-
-  if (axle_steer > 0.0) {
-    return {sign * inner_steer, sign * outer_steer};
-  }
-  return {sign * outer_steer, sign * inner_steer};
-}
-
 double yaw_from_quaternion(const geometry_msgs::msg::Quaternion & q)
 {
   return std::atan2(
@@ -129,6 +111,10 @@ public:
     frame_id_ = declare_parameter<std::string>("frame_id", "map");
     child_frame_id_ = declare_parameter<std::string>("child_frame_id", "base_link");
     steering_mode_ = declare_parameter<std::string>("steering_mode", "axle12_steer");
+    load_profile_name_ = declare_parameter<std::string>("load_profile_name", "empty");
+    payload_mass_kg_ = declare_parameter<double>("payload_mass_kg", 0.0);
+    center_of_gravity_x_m_ = declare_parameter<double>("center_of_gravity_x_m", 0.0);
+    center_of_gravity_y_m_ = declare_parameter<double>("center_of_gravity_y_m", 0.0);
     asymmetric_rear_steer_ratio_ =
       declare_parameter<double>("asymmetric_rear_steer_ratio", -0.5);
     dt_ = declare_parameter<double>("dt", 0.025);
@@ -185,17 +171,23 @@ public:
     brake_delay_ = declare_parameter<double>("brake_delay", 0.1);
     drive_time_constant_ = declare_parameter<double>("drive_time_constant", 0.2);
     brake_time_constant_ = declare_parameter<double>("brake_time_constant", 0.2);
+    drive_accel_dead_band_ = declare_parameter<double>("drive_accel_dead_band", 0.02);
+    brake_decel_dead_band_ = declare_parameter<double>("brake_decel_dead_band", 0.05);
+    max_drive_force_n_ = declare_parameter<double>("max_drive_force_n", 11188.8);
+    max_drive_power_kw_ = declare_parameter<double>("max_drive_power_kw", 280.0);
     all_wheel_drive_ = declare_parameter<bool>("all_wheel_drive", true);
+    use_smooth_tire_saturation_ =
+      declare_parameter<bool>("use_smooth_tire_saturation", true);
     steer_delay_ = declare_parameter<double>("steer_delay", 0.1);
     steer_time_constant_ = declare_parameter<double>("steer_time_constant", 0.2);
     steer_dead_band_ = declare_parameter<double>("steer_dead_band", 0.0);
+    steer_backlash_ = declare_parameter<double>("steer_backlash", 0.003491);
     steer_bias_ = declare_parameter<double>("steer_bias", 0.0);
     steering_mode_transition_time_ = declare_parameter<double>("steering_mode_transition_time", 0.45);
     wheel_tread_ = declare_parameter<double>("wheel_tread", 1.36);
     wheel_radius_ = declare_parameter<double>("wheel_radius", 0.66);
     enable_ackermann_wheel_angles_ = declare_parameter<bool>("enable_ackermann_wheel_angles", true);
-    // Back-calculated from the sheet's target inner/outer wheel angles using the current
-    // wheel tread: front 27.4 deg outer -> 33.0 deg inner, rear 22.6 deg outer -> 30.0 deg inner.
+    // Equivalent Ackermann wheelbases reproduce the supplied inner/outer angle pairs.
     ackermann_front_wheelbase_ =
       declare_parameter<double>("ackermann_front_wheelbase", 6.116611371515338);
     ackermann_rear_wheelbase_ =
@@ -235,12 +227,15 @@ public:
       wheelbase_r_, vehicle_mass_kg_, yaw_inertia_kgm2_, front_cornering_stiffness_n_rad_,
       rear_cornering_stiffness_n_rad_, front_normal_load_n_, rear_normal_load_n_,
       axle_positions_m_, axle_cornering_stiffness_n_rad_, axle_normal_loads_n_,
-      tire_friction_coefficient_, center_of_gravity_height_m_,
+      tire_friction_coefficient_, wheel_tread_, ackermann_front_wheelbase_,
+      ackermann_rear_wheelbase_, enable_ackermann_wheel_angles_, center_of_gravity_height_m_,
       rolling_resistance_coefficient_, aerodynamic_drag_coefficient_,
       frontal_area_m2_, air_density_kg_m3_, wheel_radius_, wheel_inertia_kgm2_,
       wheel_count_, dt_, vx_delay_, vx_time_constant_, drive_delay_, brake_delay_,
-      drive_time_constant_, brake_time_constant_, steer_delay_, steer_time_constant_,
-      steer_dead_band_, steer_bias_, all_wheel_drive_);
+      drive_time_constant_, brake_time_constant_, drive_accel_dead_band_,
+      brake_decel_dead_band_, max_drive_force_n_, max_drive_power_kw_, steer_delay_,
+      steer_time_constant_, steer_dead_band_, steer_backlash_, steer_bias_,
+      all_wheel_drive_, use_smooth_tire_saturation_);
     set_model_pose(initial_x_, initial_y_, initial_yaw_);
 
     sub_control_ = create_subscription<Control>(
@@ -324,6 +319,15 @@ public:
       yaw_inertia_kgm2_);
     RCLCPP_INFO(
       get_logger(),
+      "Load profile=%s, payload=%.0f kg, CG=[%.3f, %.3f, %.3f] m",
+      load_profile_name_.c_str(), payload_mass_kg_, center_of_gravity_x_m_,
+      center_of_gravity_y_m_, center_of_gravity_height_m_);
+    RCLCPP_INFO(
+      get_logger(),
+      "Per-wheel tire model: 8 wheels, steering axles 1/2, fixed axles 3/4, Ackermann=%s",
+      enable_ackermann_wheel_angles_ ? "enabled" : "disabled");
+    RCLCPP_INFO(
+      get_logger(),
       "Using uniform load distribution: %d axles, %d wheels, axle_load=%.1f kg, wheel_load=%.1f kg",
       axle_count_, wheel_count_, axle_load_kg_, wheel_load_kg_);
     RCLCPP_INFO(
@@ -341,6 +345,11 @@ public:
       rolling_resistance_coefficient_, aerodynamic_drag_coefficient_,
       frontal_area_m2_, wheel_inertia_kgm2_, wheel_count_,
       vehicle_mass_kg_ + rotating_mass_kg);
+    RCLCPP_INFO(
+      get_logger(),
+      "Estimated actuator nonlinearities: drive dead band=%.3f m/s^2, brake dead band=%.3f m/s^2, steering backlash=%.3f deg, force limit=%.0f N, power limit=%.0f kW",
+      drive_accel_dead_band_, brake_decel_dead_band_, steer_backlash_ * 57.29577951308232,
+      max_drive_force_n_, max_drive_power_kw_);
     if (front_cornering_stiffness_n_rad_ <= 1.0 || rear_cornering_stiffness_n_rad_ <= 1.0) {
       RCLCPP_WARN(
         get_logger(),
@@ -601,22 +610,19 @@ private:
   void publish_wheel_transforms(
     const rclcpp::Time & stamp, const double front_steer, const double rear_steer)
   {
-    const auto [front_left_steer, front_right_steer] = enable_ackermann_wheel_angles_
-      ? ackermann_left_right_steer(front_steer, ackermann_front_wheelbase_, wheel_tread_)
-      : std::pair<double, double>{front_steer, front_steer};
-    const auto [rear_left_steer, rear_right_steer] = enable_ackermann_wheel_angles_
-      ? ackermann_left_right_steer(rear_steer, ackermann_rear_wheelbase_, wheel_tread_)
-      : std::pair<double, double>{rear_steer, rear_steer};
+    const auto wheel_steers = agv_vehicle_model::frontTwoAxleWheelSteers(
+      front_steer, rear_steer, ackermann_front_wheelbase_, ackermann_rear_wheelbase_,
+      wheel_tread_, enable_ackermann_wheel_angles_);
 
     const std::array<geometry_msgs::msg::TransformStamped, 8> wheel_transforms{{
       make_wheel_transform(
-        stamp, "axle1_left_wheel", wheel_tf_front_x_, wheel_tf_left_y_, front_left_steer),
+        stamp, "axle1_left_wheel", wheel_tf_front_x_, wheel_tf_left_y_, wheel_steers[0]),
       make_wheel_transform(
-        stamp, "axle1_right_wheel", wheel_tf_front_x_, wheel_tf_right_y_, front_right_steer),
+        stamp, "axle1_right_wheel", wheel_tf_front_x_, wheel_tf_right_y_, wheel_steers[1]),
       make_wheel_transform(
-        stamp, "axle2_left_wheel", wheel_tf_mid_front_x_, wheel_tf_left_y_, rear_left_steer),
+        stamp, "axle2_left_wheel", wheel_tf_mid_front_x_, wheel_tf_left_y_, wheel_steers[2]),
       make_wheel_transform(
-        stamp, "axle2_right_wheel", wheel_tf_mid_front_x_, wheel_tf_right_y_, rear_right_steer),
+        stamp, "axle2_right_wheel", wheel_tf_mid_front_x_, wheel_tf_right_y_, wheel_steers[3]),
       make_wheel_transform(
         stamp, "axle3_left_wheel", wheel_tf_mid_rear_x_, wheel_tf_left_y_, 0.0),
       make_wheel_transform(
@@ -840,6 +846,10 @@ private:
   std::string frame_id_;
   std::string child_frame_id_;
   std::string steering_mode_;
+  std::string load_profile_name_;
+  double payload_mass_kg_;
+  double center_of_gravity_x_m_;
+  double center_of_gravity_y_m_;
   double asymmetric_rear_steer_ratio_;
   std::string map_path_;
   double dt_;
@@ -873,10 +883,16 @@ private:
   double brake_delay_;
   double drive_time_constant_;
   double brake_time_constant_;
+  double drive_accel_dead_band_;
+  double brake_decel_dead_band_;
+  double max_drive_force_n_;
+  double max_drive_power_kw_;
   bool all_wheel_drive_;
+  bool use_smooth_tire_saturation_;
   double steer_delay_;
   double steer_time_constant_;
   double steer_dead_band_;
+  double steer_backlash_;
   double steer_bias_;
   double steering_mode_transition_time_;
   double wheel_tread_;

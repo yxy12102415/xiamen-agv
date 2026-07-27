@@ -93,6 +93,31 @@ ament_target_dependencies(pointcloud_frame_republisher_node
   sensor_msgs
 )
 
+add_executable(h264_video_receiver_node
+  src/h264_video_receiver_node.cpp
+)
+target_compile_features(h264_video_receiver_node PUBLIC cxx_std_17)
+ament_target_dependencies(h264_video_receiver_node
+  rclcpp
+  sensor_msgs
+  std_msgs
+)
+
+if(IGNITION_TRANSPORT_TARGET AND IGNITION_MSGS_TARGET)
+  add_executable(direct_h264_video_sender_node
+    src/direct_h264_video_sender_node.cpp
+  )
+  target_compile_features(direct_h264_video_sender_node PUBLIC cxx_std_17)
+  ament_target_dependencies(direct_h264_video_sender_node
+    rclcpp
+    std_msgs
+  )
+  target_link_libraries(direct_h264_video_sender_node
+    ${IGNITION_TRANSPORT_TARGET}
+    ${IGNITION_MSGS_TARGET}
+  )
+endif()
+
 add_executable(wheel_steering_visualizer_node
   src/wheel_steering_visualizer_node.cpp
 )
@@ -117,8 +142,13 @@ set(AGV_GAZEBO_TARGETS
   gnss_imu_simulator_node
   dynamic_obstacle_simulator_node
   pointcloud_frame_republisher_node
+  h264_video_receiver_node
   wheel_steering_visualizer_node
 )
+
+if(TARGET direct_h264_video_sender_node)
+  list(APPEND AGV_GAZEBO_TARGETS direct_h264_video_sender_node)
+endif()
 
 if(IGNITION_TRANSPORT_TARGET AND IGNITION_MSGS_TARGET)
   add_executable(ign_pointcloud_bridge_node

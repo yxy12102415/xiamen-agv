@@ -3,6 +3,7 @@ from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -13,6 +14,8 @@ def generate_launch_description():
     rviz_config = LaunchConfiguration("rviz_config")
     use_rviz = LaunchConfiguration("use_rviz")
     steering_mode = LaunchConfiguration("steering_mode")
+    vehicle_load_profile = LaunchConfiguration("vehicle_load_profile")
+    surface_friction_coefficient = LaunchConfiguration("surface_friction_coefficient")
     initial_x = LaunchConfiguration("initial_x")
     initial_y = LaunchConfiguration("initial_y")
     initial_yaw = LaunchConfiguration("initial_yaw")
@@ -26,6 +29,13 @@ def generate_launch_description():
     default_rviz_config = PathJoinSubstitution(
         [FindPackageShare("autoware_launch"), "rviz", "autoware.rviz"]
     )
+    vehicle_profile_file = PathJoinSubstitution(
+        [
+            FindPackageShare("agv_vehicle_model"),
+            "config",
+            PythonExpression(["'", vehicle_load_profile, "' + '.param.yaml'"]),
+        ]
+    )
 
     return LaunchDescription(
         [
@@ -36,6 +46,8 @@ def generate_launch_description():
             DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
             DeclareLaunchArgument("use_rviz", default_value="true"),
             DeclareLaunchArgument("steering_mode", default_value="asymmetric_4ws"),
+            DeclareLaunchArgument("vehicle_load_profile", default_value="empty"),
+            DeclareLaunchArgument("surface_friction_coefficient", default_value="0.8"),
             DeclareLaunchArgument("initial_x", default_value="9.9991"),
             DeclareLaunchArgument("initial_y", default_value="28.0013"),
             DeclareLaunchArgument("initial_yaw", default_value="-1.5708"),
@@ -83,9 +95,10 @@ def generate_launch_description():
                         "steering_mode": steering_mode,
                         "dt": 0.025,
                         "vx_lim": 5.0,
-                        "steer_lim": 0.47822,
-                        "steer_lim_front": 0.47822,
-                        "steer_lim_rear": 0.39444,
+                        # Axle-center limits corresponding to the supplied inner/outer wheel limits.
+                        "steer_lim": 0.5229795759,
+                        "steer_lim_front": 0.5229795759,
+                        "steer_lim_rear": 0.4505604976,
                         "vehicle_mass_kg": 23000.0,
                         "yaw_inertia_kgm2": 432363.7513,
                         "front_cornering_stiffness_n_rad": 400000.0,
@@ -96,10 +109,10 @@ def generate_launch_description():
                         "wheel_load_kg": 2875.0,
                         "front_normal_load_n": 112815.0,
                         "rear_normal_load_n": 112815.0,
-                        "axle1_x": 4.479714,
-                        "axle2_x": 2.596727,
-                        "axle3_x": -2.570058,
-                        "axle4_x": -4.479289,
+                        "axle1_x": 4.65,
+                        "axle2_x": 3.0,
+                        "axle3_x": -3.0,
+                        "axle4_x": -4.65,
                         "axle1_cornering_stiffness_n_rad": 200000.0,
                         "axle2_cornering_stiffness_n_rad": 200000.0,
                         "axle3_cornering_stiffness_n_rad": 200000.0,
@@ -108,25 +121,26 @@ def generate_launch_description():
                         "axle2_normal_load_n": 56407.5,
                         "axle3_normal_load_n": 56407.5,
                         "axle4_normal_load_n": 56407.5,
-                        "tire_friction_coefficient": 0.8,
+                        "tire_friction_coefficient": surface_friction_coefficient,
                         "vx_rate_lim": 0.35,
                         "max_drive_accel": 0.35,
                         "max_brake_decel": 4.0,
                         "steer_rate_lim": 0.261799,
-                        "wheelbase_f": 4.479714,
-                        "wheelbase_r": 4.479289,
+                        "wheelbase_f": 4.65,
+                        "wheelbase_r": 4.65,
                         "wheel_tread": 2.381384,
                         "wheel_radius": 0.66,
+                        "enable_ackermann_wheel_angles": True,
                         "center_of_gravity_height_m": 0.8,
                         "rolling_resistance_coefficient": 0.012,
                         "aerodynamic_drag_coefficient": 1.10,
                         "frontal_area_m2": 7.936695,
                         "air_density_kg_m3": 1.225,
                         "wheel_inertia_kgm2": 67.0824,
-                        "wheel_tf_front_x": 4.479714,
-                        "wheel_tf_mid_front_x": 2.596727,
-                        "wheel_tf_mid_rear_x": -2.570058,
-                        "wheel_tf_rear_x": -4.479289,
+                        "wheel_tf_front_x": 4.65,
+                        "wheel_tf_mid_front_x": 3.0,
+                        "wheel_tf_mid_rear_x": -3.0,
+                        "wheel_tf_rear_x": -4.65,
                         "wheel_tf_left_y": 1.190692,
                         "wheel_tf_right_y": -1.190692,
                         "wheel_tf_z": 0.66,
@@ -145,7 +159,8 @@ def generate_launch_description():
                         "initial_y": initial_y,
                         "initial_yaw": initial_yaw,
                         "publish_tf": True,
-                    }
+                    },
+                    vehicle_profile_file,
                 ],
             ),
             Node(
@@ -158,9 +173,9 @@ def generate_launch_description():
                         "input_topic": "/localization/kinematic_state",
                         "output_topic": "/visualization/agv_vehicle_marker",
                         "length": 15.0,
-                        "width": 3.119,
+                        "width": 2.98,
                         "height": 2.54,
-                        "wheelbase": 8.959003,
+                        "wheelbase": 9.30,
                         "wheel_tread": 2.381384,
                     }
                 ],

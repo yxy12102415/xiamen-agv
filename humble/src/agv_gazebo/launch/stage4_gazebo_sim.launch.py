@@ -154,24 +154,25 @@ def generate_launch_description():
         ("right_rear", "-3.75", "-1.65", "1.95", "-1.570796", "0.174533", "0.0"),
     ]
     camera_bridges = [
-        bridge
-        for camera_name, *_ in camera_frames
-        for bridge in (
-            f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
-            f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+        (
+            camera_name,
+            [
+                f"/sensing/camera/{camera_name}/image@sensor_msgs/msg/Image[{gazebo_msgs}.Image",
+                f"/sensing/camera/{camera_name}/camera_info@sensor_msgs/msg/CameraInfo[{gazebo_msgs}.CameraInfo",
+            ],
         )
+        for camera_name, *_ in camera_frames
     ]
-    lidar_bridges.extend(camera_bridges)
     if gazebo_packages["supports_service_bridge"]:
         lidar_bridges.append(
             f"/world/xiamen_empty/set_pose@{set_pose_service_type}"
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.500", "1.490", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.500", "-1.490", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.500", "-1.490", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.500", "1.490", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
         ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
@@ -297,6 +298,16 @@ def generate_launch_description():
                     ("/sensing/lidar/rr_lidar_2/points", "/sim/lidar/rr_lidar_2_raw"),
                 ],
             ),
+            *[
+                Node(
+                    package=gazebo_packages["bridge_package"],
+                    executable="parameter_bridge",
+                    name=f"agv_camera_bridge_{camera_name}",
+                    output="screen",
+                    arguments=bridges,
+                )
+                for camera_name, bridges in camera_bridges
+            ],
             *[
                 Node(
                     package="agv_gazebo",
@@ -426,9 +437,9 @@ def generate_launch_description():
                         "input_topic": "/localization/kinematic_state",
                         "output_topic": "/visualization/agv_vehicle_marker",
                         "length": 15.0,
-                        "width": 3.119,
+                        "width": 2.98,
                         "height": 2.54,
-                        "wheelbase": 8.959003,
+                        "wheelbase": 9.30,
                         "wheel_tread": 2.381384,
                     }
                 ],

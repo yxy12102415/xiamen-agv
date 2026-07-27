@@ -5,6 +5,7 @@ from autoware_control_msgs.msg import Control
 from autoware_vehicle_msgs.msg import ControlModeReport, GearCommand, GearReport
 from nav_msgs.msg import Odometry
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32, Float32MultiArray, String
 
@@ -31,6 +32,8 @@ class SimulatedChassisFeedbackNode(Node):
         self.declare_parameter("command_timeout", 0.5)
         self.declare_parameter("wheel_radius", 0.66)
         self.declare_parameter("max_brake_pressure_bar", 160.0)
+        self.declare_parameter("brake_pressure_deadzone_bar", 3.0)
+        self.declare_parameter("brake_pressure_curve_exponent", 1.05)
         self.declare_parameter("max_brake_decel", 4.0)
         self.declare_parameter("max_drive_accel", 0.35)
 
@@ -38,6 +41,12 @@ class SimulatedChassisFeedbackNode(Node):
         self.command_timeout = float(self.get_parameter("command_timeout").value)
         self.wheel_radius = float(self.get_parameter("wheel_radius").value)
         self.max_brake_pressure_bar = float(self.get_parameter("max_brake_pressure_bar").value)
+        self.brake_pressure_deadzone_bar = float(
+            self.get_parameter("brake_pressure_deadzone_bar").value
+        )
+        self.brake_pressure_curve_exponent = float(
+            self.get_parameter("brake_pressure_curve_exponent").value
+        )
         self.max_brake_decel = float(self.get_parameter("max_brake_decel").value)
         self.max_drive_accel = float(self.get_parameter("max_drive_accel").value)
 
@@ -160,8 +169,6 @@ class SimulatedChassisFeedbackNode(Node):
             ControlModeReport.AUTONOMOUS_STEER_ONLY: "AUTONOMOUS_STEER_ONLY",
             ControlModeReport.AUTONOMOUS_VELOCITY_ONLY: "AUTONOMOUS_VELOCITY_ONLY",
             ControlModeReport.MANUAL: "MANUAL",
-            ControlModeReport.DISENGAGED: "DISENGAGED",
-            ControlModeReport.NOT_READY: "NOT_READY",
         }.get(int(msg.mode), "UNKNOWN")
 
     def on_emergency_stop(self, msg):
@@ -187,7 +194,14 @@ class SimulatedChassisFeedbackNode(Node):
             fault_state = "FEEDBACK_TIMEOUT"
 
         brake_ratio = clamp(-self.command_accel / max(1e-3, self.max_brake_decel), 0.0, 1.0)
-        brake_pressure_bar = brake_ratio * self.max_brake_pressure_bar
+        brake_pressure_bar = 0.0
+        if brake_ratio > 0.0:
+            usable_pressure = max(
+                0.0, self.max_brake_pressure_bar - self.brake_pressure_deadzone_bar
+            )
+            brake_pressure_bar = self.brake_pressure_deadzone_bar + usable_pressure * (
+                brake_ratio ** max(0.1, self.brake_pressure_curve_exponent)
+            )
         wheel_angular_speed = self.actual_velocity / max(1e-3, self.wheel_radius)
         drive_motor_state = "BRAKING" if brake_ratio > 0.02 else (
             "DRIVING" if self.command_accel > 0.02 else "IDLE"
@@ -229,7 +243,7 @@ class SimulatedChassisFeedbackNode(Node):
             "yaw_rate_radps": self.actual_yaw_rate,
             "front_steer_rad": self.front_steer,
             "rear_steer_rad": self.rear_steer,
-            "wheel_speeds_radps": wheel_speeds.data,
+            "wheel_speeds_radps": list(wheel_speeds.data),
             "brake_pressure_bar": brake_pressure_bar,
             "drive_motor_state": drive_motor_state,
             "steering_motor_state": steering_motor_state,
@@ -250,9 +264,11 @@ def main():
     node = SimulatedChassisFeedbackNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == "__main__":

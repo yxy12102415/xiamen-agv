@@ -155,10 +155,10 @@ def generate_launch_description():
             f"@{gazebo_msgs}.Pose@{gazebo_msgs}.Boolean"
         )
     lidar_calibration_defaults = [
-        ("fl_lidar_1", "7.346", "1.560", "1.25", "0.785398", "0.0", "0.0"),
-        ("fr_lidar_1", "7.346", "-1.560", "1.25", "-0.785398", "0.0", "0.0"),
-        ("rl_lidar_1", "-7.346", "-1.560", "1.25", "-2.356194", "0.0", "0.0"),
-        ("rr_lidar_1", "-7.346", "1.560", "1.25", "2.356194", "0.0", "0.0"),
+        ("fl_lidar_1", "7.500", "1.490", "1.25", "0.785398", "0.0", "0.0"),
+        ("fr_lidar_1", "7.500", "-1.490", "1.25", "-0.785398", "0.0", "0.0"),
+        ("rl_lidar_1", "-7.500", "-1.490", "1.25", "-2.356194", "0.0", "0.0"),
+        ("rr_lidar_1", "-7.500", "1.490", "1.25", "2.356194", "0.0", "0.0"),
         ("fl_lidar_2", "4.55", "1.52", "2.45", "0.0", "0.0", "0.0"),
         ("rr_lidar_2", "-4.55", "-1.52", "2.45", "3.141593", "0.0", "0.0"),
     ]
@@ -420,9 +420,9 @@ def generate_launch_description():
                         "input_topic": "/localization/kinematic_state",
                         "output_topic": "/visualization/agv_vehicle_marker",
                         "length": 15.0,
-                        "width": 3.119,
+                        "width": 2.98,
                         "height": 2.54,
-                        "wheelbase": 8.959003,
+                        "wheelbase": 9.30,
                         "wheel_tread": 2.381384,
                     }
                 ],

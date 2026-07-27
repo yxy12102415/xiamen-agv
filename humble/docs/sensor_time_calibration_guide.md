@@ -102,6 +102,62 @@ To calibrate real mounting:
 
 ## Lidar Motion Distortion / 点云畸变
 
+### Helios reference profile / Helios 参考参数
+
+The simulator uses the following RoboSense Helios reference profile. These are
+manufacturer-based nominal values, not a replacement for the calibration file
+and operating mode read from each physical lidar.
+
+仿真采用以下 RoboSense Helios 厂家参考参数。这些是名义参数，不能替代从每台实物雷达
+读取的标定文件和实际工作模式。
+
+| Item / 项目 | Helios16 | Helios32 reference / 参考 | Simulator / 仿真 |
+| --- | --- | --- | --- |
+| Horizontal FoV / 水平视场 | 360 deg | 360 deg | 360 deg |
+| Vertical FoV / 垂直视场 | -15 to +15 deg | H32F70: -55 to +15 deg | Same nominal FoV / 相同名义视场 |
+| Horizontal step / 水平角分辨率 | 0.1/0.2/0.4 deg | 0.1/0.2/0.4 deg | H16: 0.2 deg/1800; H32: 0.4 deg/900 compatibility profile |
+| Update rate / 更新率 | 5/10/20 Hz | 5/10/20 Hz | 10 Hz |
+| Range / 量程 | 0.2-150 m | 0.2-150 m | 0.2-150 m |
+| Nominal precision / 标称精度 | 1 cm | 1 cm | 1 cm Gaussian noise approximation / 高斯噪声近似 |
+| Housing / 外形 | diameter 100 x 100 mm | diameter 100 x 100 mm | diameter 100 x 100 mm |
+
+At the configured 10 Hz mode, 0.2 degree horizontal steps produce the nominal
+single-return rates of 288,000 points/s for H16 and 576,000 points/s for H32.
+H16 uses that native profile. In the current Humble Gazebo stack, both 1800x32
+GPU lidar sensors stop publishing, so H32 uses a stable 900x32 compatibility
+profile. This preserves the H32F70 line count and vertical FoV, but its simulated
+horizontal ray spacing is 0.4 degrees rather than the physical 0.2-degree mode.
+
+当前配置为 10 Hz，实物的 0.2 度模式下 H16 和 H32 单回波标称点频分别为
+288,000 点/秒和 576,000 点/秒。H16 已按该模式设置；当前 Humble Gazebo 同时运行
+两路 1800x32 GPU 雷达时 H32 不再发布，因此 H32 暂用稳定的 900x32 兼容配置。
+该配置保留 H32F70 的线数和垂直视场，但仿真水平射线间隔为 0.4 度。
+
+`FR_LiDAR-1` and `RR_LiDAR-1` currently use the H32F70 profile because the exact
+Helios32 subtype is not yet recorded in the project. `FL_LiDAR-2` and
+`RR_LiDAR-2` retain the required upward-looking role with a 0 to +30 degree
+simulation approximation. Standard Helios16 is -15 to +15 degrees; replace this
+approximation with the measured mounting rotation and device calibration when
+those values are available.
+
+项目目前没有记录 Helios32 的完整子型号，因此 `FR_LiDAR-1` 和 `RR_LiDAR-1`
+暂按 H32F70 建模。`FL_LiDAR-2` 和 `RR_LiDAR-2` 为保留上扫用途，暂用
+0 到 +30 度的仿真近似；标准 Helios16 为 -15 到 +15 度。拿到实车安装角和设备标定
+文件后，应使用实测外参和逐线角度替换该近似。
+
+Gazebo distributes vertical channels uniformly. A physical Helios32 uses
+factory-calibrated per-channel angles, so exact one-to-one point patterns require
+the lidar calibration file or a recorded packet/PCAP sample.
+
+Gazebo 当前将垂直线束均匀分布，而实物 Helios32 使用厂家逐线标定角。若要一比一复刻
+点云线束，需要雷达标定文件或一份原始 packet/PCAP 样本。
+
+Manufacturer references / 厂家资料：
+
+- RoboSense Helios series: <https://store.robosense.ai/ja/products/helios-series>
+- RS-Helios-16P manual: <https://cdn.robosense.cn/20220923161259_62013.pdf>
+- RS-Helios-5515 manual: <https://cdn.robosense.cn/20220923164048_44264.pdf>
+
 Gazebo currently emits idealized lidar scans. It does not fully model all real
 motion distortion, rolling acquisition timing, packet timing, or per-point time
 offsets.
