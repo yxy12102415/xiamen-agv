@@ -30,6 +30,7 @@ stop_workspace_processes() {
   pkill -"${signal}" -f "static_transform_publisher.*base_link" 2>/dev/null || true
   pkill -"${signal}" -f "lidar_point_marker_publisher" 2>/dev/null || true
   pkill -"${signal}" -f "pointcloud_frame_republisher_node" 2>/dev/null || true
+  pkill -"${signal}" -f "ffmpeg .*udp://127\\.0\\.0\\.1:15[12]0[0-5]" 2>/dev/null || true
   pkill -"${signal}" -f "ign gazebo.*${WORLD_PATH}" 2>/dev/null || true
 }
 
@@ -107,6 +108,7 @@ case "${MODE}" in
     REMOTE_VIEWER_PID=""
     REMOTE_USE_GAZEBO_GUI="${AGV_REMOTE_USE_GAZEBO_GUI:-false}"
     REMOTE_USE_RVIZ="${AGV_REMOTE_USE_RVIZ:-false}"
+    export AGV_SENSOR_PROFILE="${AGV_REMOTE_SENSOR_PROFILE:-remote}"
 
     cleanup_remote() {
       trap - EXIT INT TERM
@@ -153,11 +155,11 @@ case "${MODE}" in
 
     if [[ "${AGV_REMOTE_TERMINAL_CONTROL:-0}" == "1" ]] || [[ -z "${DISPLAY:-}" ]]; then
       echo "[sim.sh] Remote mode started with terminal controls."
-      echo "[sim.sh] Remote video: direct Gazebo->H.264, front 960x540, other views 640x360, 50 ms one-way."
+      echo "[sim.sh] Remote sensor profile: ${AGV_SENSOR_PROFILE}; direct Gazebo->H.264, 50 ms one-way."
       ros2 run agv_remote_drive remote_drive_keyboard
     else
       echo "[sim.sh] Remote mode started with GTA-style WASD controls."
-      echo "[sim.sh] Remote video: direct Gazebo->H.264, front 960x540, other views 640x360, 50 ms one-way."
+      echo "[sim.sh] Remote sensor profile: ${AGV_SENSOR_PROFILE}; direct Gazebo->H.264, 50 ms one-way."
       ros2 run agv_remote_drive remote_drive_wasd
     fi
     cleanup_remote

@@ -64,6 +64,7 @@ public:
   DirectH264VideoSender()
   : Node("direct_h264_video_sender")
   {
+    ::signal(SIGPIPE, SIG_IGN);
     camera_name_ = declare_parameter<std::string>("camera_name", "front");
     ignition_topic_ = declare_parameter<std::string>(
       "ignition_topic", "/sensing/camera/front/image");
@@ -296,6 +297,14 @@ private:
         }
         if (!write_all(encoder_stdin_fd_, frame.data(), frame.size())) {
           stop_encoder();
+          if (encoder_ == "h264_nvenc" && !encoder_fallback_attempted_) {
+            encoder_fallback_attempted_ = true;
+            encoder_ = "libx264";
+            RCLCPP_WARN(
+              get_logger(),
+              "NVENC encoder [%s] stopped; falling back to libx264",
+              camera_name_.c_str());
+          }
         } else {
           encoded_count_++;
         }
@@ -336,6 +345,7 @@ private:
   int keyframe_interval_{5};
   int output_width_{0};
   int output_height_{0};
+  bool encoder_fallback_attempted_{false};
 
   ignition::transport::Node ign_node_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr diagnostic_pub_;

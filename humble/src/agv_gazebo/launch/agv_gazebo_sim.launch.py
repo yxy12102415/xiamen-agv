@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+import xml.etree.ElementTree as ET
 
 from ament_index_python.packages import PackageNotFoundError
 from ament_index_python.packages import get_package_share_directory
@@ -18,6 +19,73 @@ from launch.substitutions import PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
+
+SENSOR_PROFILES = {
+    "full": {
+        "camera_front": (960, 540),
+        "camera_other": (960, 540),
+        "transport_front": (960, 540),
+        "transport_other": (640, 360),
+        "lidar_horizontal_cap": None,
+    },
+    "remote": {
+        "camera_front": (960, 540),
+        "camera_other": (640, 360),
+        "transport_front": (960, 540),
+        "transport_other": (640, 360),
+        "lidar_horizontal_cap": 900,
+    },
+    "fast": {
+        "camera_front": (800, 450),
+        "camera_other": (480, 270),
+        "transport_front": (800, 450),
+        "transport_other": (480, 270),
+        "lidar_horizontal_cap": 600,
+    },
+}
+
+
+def normalized_sensor_profile():
+    requested = os.environ.get("AGV_SENSOR_PROFILE", "full").strip().lower()
+    aliases = {"balanced": "remote", "performance": "fast"}
+    profile = aliases.get(requested, requested)
+    if profile not in SENSOR_PROFILES:
+        supported = ", ".join(SENSOR_PROFILES)
+        raise RuntimeError(
+            f"Unsupported AGV_SENSOR_PROFILE '{requested}'; choose {supported}"
+        )
+    return profile
+
+
+def apply_sensor_profile(model_sdf_path, profile_name):
+    profile = SENSOR_PROFILES[profile_name]
+    if profile_name == "full":
+        return
+
+    tree = ET.parse(model_sdf_path)
+    root = tree.getroot()
+    for sensor in root.findall(".//sensor"):
+        sensor_type = sensor.get("type", "")
+        sensor_name = sensor.get("name", "")
+        if sensor_type == "camera":
+            size = (
+                profile["camera_front"]
+                if sensor_name == "front_camera"
+                else profile["camera_other"]
+            )
+            width = sensor.find("./camera/image/width")
+            height = sensor.find("./camera/image/height")
+            if width is not None and height is not None:
+                width.text = str(size[0])
+                height.text = str(size[1])
+        elif sensor_type == "gpu_lidar":
+            samples = sensor.find("./lidar/scan/horizontal/samples")
+            cap = profile["lidar_horizontal_cap"]
+            if samples is not None and cap is not None:
+                samples.text = str(min(int(samples.text), cap))
+
+    tree.write(model_sdf_path, encoding="unicode", xml_declaration=True)
 
 
 def gazebo_ros_packages():
@@ -44,7 +112,34 @@ def gazebo_ros_packages():
         }
 
 
-def ignition_compat_paths(world_path, models_path):
+def runtime_models_path(models_path, sensor_profile, sdf_version=None):
+    if sensor_profile == "full" and sdf_version is None:
+        return models_path
+
+    version_tag = sdf_version.replace(".", "_") if sdf_version else "native"
+    patched_models_path = os.path.join(
+        tempfile.gettempdir(),
+        f"agv_runtime_models_{sensor_profile}_{version_tag}",
+    )
+    patched_model_path = os.path.join(patched_models_path, "agv_with_lidars")
+    source_model_path = os.path.join(models_path, "agv_with_lidars")
+    if os.path.exists(patched_model_path):
+        shutil.rmtree(patched_model_path)
+    shutil.copytree(source_model_path, patched_model_path)
+
+    model_sdf_path = os.path.join(patched_model_path, "model.sdf")
+    if sdf_version is not None:
+        with open(model_sdf_path, "r", encoding="utf-8") as src:
+            model = src.read().replace(
+                '<sdf version="1.9">', f'<sdf version="{sdf_version}">'
+            )
+        with open(model_sdf_path, "w", encoding="utf-8") as dst:
+            dst.write(model)
+    apply_sensor_profile(model_sdf_path, sensor_profile)
+    return os.pathsep.join([patched_models_path, models_path])
+
+
+def ignition_compat_paths(world_path, models_path, sensor_profile):
     replacements = {
         '<sdf version="1.9">': '<sdf version="1.8">',
         'filename="gz-sim-physics-system" name="gz::sim::systems::Physics"':
@@ -69,19 +164,10 @@ def ignition_compat_paths(world_path, models_path):
     with open(patched_path, "w", encoding="utf-8") as dst:
         dst.write(world)
 
-    patched_models_path = os.path.join(tempfile.gettempdir(), "agv_galactic_models")
-    patched_model_path = os.path.join(patched_models_path, "agv_with_lidars")
-    source_model_path = os.path.join(models_path, "agv_with_lidars")
-    if os.path.exists(patched_model_path):
-        shutil.rmtree(patched_model_path)
-    shutil.copytree(source_model_path, patched_model_path)
-    model_sdf_path = os.path.join(patched_model_path, "model.sdf")
-    with open(model_sdf_path, "r", encoding="utf-8") as src:
-        model = src.read().replace('<sdf version="1.9">', '<sdf version="1.8">')
-    with open(model_sdf_path, "w", encoding="utf-8") as dst:
-        dst.write(model)
-
-    return patched_path, os.pathsep.join([patched_models_path, models_path])
+    return (
+        patched_path,
+        runtime_models_path(models_path, sensor_profile, sdf_version="1.8"),
+    )
 
 
 def generate_launch_description():
@@ -90,6 +176,8 @@ def generate_launch_description():
     pkg_share = get_package_share_directory("agv_gazebo")
     models_path = os.path.join(pkg_share, "models")
     world_path = os.path.join(pkg_share, "worlds", "xiamen_empty.sdf")
+    sensor_profile = normalized_sensor_profile()
+    sensor_profile_config = SENSOR_PROFILES[sensor_profile]
     initial_x = LaunchConfiguration("initial_x")
     initial_y = LaunchConfiguration("initial_y")
     initial_yaw = LaunchConfiguration("initial_yaw")
@@ -187,15 +275,15 @@ def generate_launch_description():
         "right_rear",
     )
     # The front view stays full resolution. Thumbnail views use a smaller
-    # transport image to keep the remote console responsive; Gazebo sensors
-    # themselves remain unchanged at 960x540.
+    # Keep the transport and receiver dimensions matched to the active sensor
+    # profile so FFmpeg never needs an extra scale pass.
     remote_camera_output_sizes = {
-        "front": (960, 540),
-        "rear": (640, 360),
-        "left_front": (640, 360),
-        "left_rear": (640, 360),
-        "right_front": (640, 360),
-        "right_rear": (640, 360),
+        camera_name: (
+            sensor_profile_config["transport_front"]
+            if camera_name == "front"
+            else sensor_profile_config["transport_other"]
+        )
+        for camera_name in remote_camera_names
     }
     remote_camera_receiver_sizes = {
         camera_name: (
@@ -325,7 +413,20 @@ def generate_launch_description():
     )
     gazebo_packages = gazebo_ros_packages()
     if not gazebo_packages["supports_service_bridge"]:
-        world_path, models_path = ignition_compat_paths(world_path, models_path)
+        world_path, models_path = ignition_compat_paths(
+            world_path, models_path, sensor_profile
+        )
+    else:
+        models_path = runtime_models_path(models_path, sensor_profile)
+    print(
+        "[agv_gazebo] sensor profile=%s, camera=%sx%s/%sx%s, lidar cap=%s"
+        % (
+            sensor_profile,
+            *sensor_profile_config["camera_front"],
+            *sensor_profile_config["camera_other"],
+            sensor_profile_config["lidar_horizontal_cap"] or "full",
+        )
+    )
 
     gz_launch = PathJoinSubstitution(
         [

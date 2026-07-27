@@ -81,13 +81,31 @@ ROS/Gazebo domain 和 world。
   remote_network_loss_percent:=2.0
 ```
 
-视频默认由五个 Python/NVENC 发送节点、一个 Python/libx264 发送节点和六个 C++/FFmpeg 接收节点完成 H.264
-编码、Annex-B/UDP 传输、带宽限制、网络损伤和解码；每路默认 `1.5 Mbit/s`，总链路
+视频默认由六个 Gazebo Transport/C++ 发送节点直接读取相机图像，使用五路 NVENC
+和一路 `libx264` 编码，再由一个 UDP 网络损伤代理和六个 C++/FFmpeg 接收节点完成
+Annex-B/UDP 传输与解码；每路默认 `1.5 Mbit/s`，总链路
 上限 `100 Mbit/s`。当前显卡最多并发五路 NVENC，因此右后相机固定使用 `libx264`；
-其他编码器运行失败时也会自动回退到 `libx264`。前视视频冻结约 `1 s` 或
+若 NVENC 启动失败，发送节点会自动切换到 `libx264`，避免相机画面直接中断。
+前视视频冻结约 `1 s` 或
 接收端健康诊断超过 `1.5 s` 时，REMOTE 仲裁器自动输出停车指令。正式
 RTP/SRT/WebRTC、5G 切片和鉴权仍未接入。完整状态见
 [远程驾驶 UDP 协议状态](docs/remote_driving_udp_protocol_status.md)。
+
+`./sim.sh remote` 默认采用 `remote` 传感器配置：前视保持 `960x540`，其余相机
+以 `640x360` 生成，四个 H16 的水平采样由 `1800` 降至 `900`；相机/LiDAR 频率、
+LiDAR 垂直线数、量程、噪声、视场角、安装外参和场景模型均不改变。运行时只修改
+`/tmp` 中的模型副本，源码中的完整传感器参数保持不变。
+
+```bash
+# 默认均衡档
+./sim.sh remote
+
+# 原始传感器参数，用于精度对照
+AGV_REMOTE_SENSOR_PROFILE=full ./sim.sh remote
+
+# 帧率优先：前视 800x450，其余 480x270，LiDAR 水平采样上限 600
+AGV_REMOTE_SENSOR_PROFILE=fast ./sim.sh remote
+```
 
 ## Remote-Driving Network Simulation
 
@@ -96,13 +114,17 @@ mock B&R feedback UDP, and all six camera feeds. The default is `50 ms` one-way
 delay, zero jitter, and zero packet loss. The console reports link state,
 feedback latency, camera receive/render FPS, and estimated image age.
 
-Each camera has a Python H.264 sender, an impairment queue, and a C++/FFmpeg
-receiver. The default path uses H.264 Annex-B over local UDP at `1.5 Mbit/s`
-per camera, with a `100 Mbit/s` aggregate cap. Five feeds use NVENC and the
-right-rear feed reserves the sixth slot with `libx264`; failed NVENC processes
-also fall back automatically. A front
+Each camera is read directly from Gazebo Transport by a C++ H.264 sender,
+followed by one UDP impairment proxy and six C++/FFmpeg receivers. The default
+path uses H.264 Annex-B over local UDP at `1.5 Mbit/s` per camera, with a
+`100 Mbit/s` aggregate cap. Five feeds use NVENC and the right-rear feed uses
+`libx264`; a failed NVENC process automatically falls back to `libx264`. A front
 video freeze or receiver-health timeout stops REMOTE commands. RTP/SRT/WebRTC,
 5G slicing, authentication, and encryption remain future integration work.
+
+Remote mode defaults to the `remote` sensor profile. Use
+`AGV_REMOTE_SENSOR_PROFILE=full` for original sensor fidelity or
+`AGV_REMOTE_SENSOR_PROFILE=fast` for the highest frame-rate profile.
 
 RViz 使用 `map` 作为固定坐标系。仿真器发布 `map -> base_link`，启动文件发布
 从 `base_link` 到激光雷达、IMU、GNSS 等传感器坐标系的静态 TF。若点云位置漂移
@@ -561,11 +583,12 @@ cd /data/projects/xiamen-agv-sim/humble
 ./sim.sh remote
 ```
 
-This one command starts Gazebo, RViz, the command arbiter, and one GTA-style
-WASD console containing all six camera views. Closing the control window or
-pressing `Ctrl+C` stops the whole session. To skip only the camera mosaic
-inside the console, run `./sim.sh remote enable_camera_topics:=false`. The old
-separate camera window is available only when explicitly requested with
+This one command starts the Gazebo server, the command arbiter, and one
+GTA-style WASD console containing all six camera views. Gazebo GUI and RViz are
+off by default to reserve rendering capacity for sensors. Enable them with
+`AGV_REMOTE_USE_GAZEBO_GUI=true` or `AGV_REMOTE_USE_RVIZ=true`. Closing the
+control window or pressing `Ctrl+C` stops the whole session. The old separate
+camera window is available only when explicitly requested with
 `AGV_REMOTE_CAMERA_VIEWER=1 ./sim.sh remote`.
 
 If a terminal or GUI is force-closed, stop every process from this simulation
@@ -603,9 +626,11 @@ UDP/TLV 域控网关和模拟 B&R 车端控制器，再进入 REMOTE 输入；MP
 输入。只有当前获得控制权的一方能够进入 `agv_safety_supervisor`。默认是 `AUTO`，
 并且车辆速度不超过 `0.05 m/s` 时才允许切换控制权。
 
-只需执行 `./sim.sh remote`：它会同时启动 Gazebo、RViz、控制仲裁器和一个包含六路
-摄像头画面的 GTA 风格 WASD 驾驶台，不再额外打开独立摄像头窗口。关闭驾驶台或按
-`Ctrl+C` 会关闭整套远程驾驶进程。点击驾驶台窗口后，按住 `W` 前进，
+只需执行 `./sim.sh remote`：它会启动无界面的 Gazebo server、控制仲裁器和一个
+包含六路摄像头画面的 GTA 风格 WASD 驾驶台；Gazebo GUI 和 RViz 默认关闭，把
+渲染能力留给传感器。需要时分别设置 `AGV_REMOTE_USE_GAZEBO_GUI=true` 或
+`AGV_REMOTE_USE_RVIZ=true`。关闭驾驶台或按 `Ctrl+C` 会关闭整套远程驾驶进程。
+点击驾驶台窗口后，按住 `W` 前进，
 按住 `S` 制动并在停车后倒车，`A/D` 左右转向，松开方向键自动回正，`Space` 制动。
 `E` 锁存急停，停车后按 `Z` 复位。控制窗口本身就是 deadman：窗口失去焦点、被关闭
 或控制进程中断时，车辆都会自动停车。旧终端控制仍可通过
@@ -617,10 +642,10 @@ Gazebo、RViz、传感器桥和控制节点，再重新启动。
 
 六个画面的目标频率与 Gazebo 摄像头相同，均为 `15 Hz`；实际频率取决于 Gazebo
 传感器渲染负载。标题显示输入、编码、解码/显示 FPS、码率和画面年龄。每路使用
-独立 H.264/NVENC 发送器、C++ 接收器和最新帧队列，短时处理不及时会丢弃旧帧，
-不会无限累积延迟。C++ 接收器替代 Python 原始图像发布后，发送节点 CPU 从完整场景
-下约 `70-100%` 单核降低到约 `7-9%`。场景和摄像头参数没有简化；剩余刷新率限制
-主要来自 Gazebo 六相机和六激光雷达的 GPU 渲染。
+Gazebo Transport/C++ H.264 发送器、C++ 接收器和最新帧队列，短时处理不及时会
+丢弃旧帧，不会无限累积延迟。`remote` 配置仅降低非主视相机分辨率和 H16 水平
+采样，场景、频率、FOV、垂直线数和测距模型不变；`full` 配置用于原始参数对照，
+`fast` 配置用于帧率优先运行。
 默认单向网络延迟为 `50 ms`，也可切换到旧的原始图像链路：
 
 ```bash
