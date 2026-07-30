@@ -22,6 +22,56 @@ future bench and shadow-mode testing.
 验、堆场吊运动、集装箱堆场场景，以及用于后续台架测试和影子模式测试的实车接口
 骨架。
 
+## Current Progress / 当前进度
+
+The Humble workspace is the primary development target and is currently at the
+**rich simulation / pre-real-vehicle integration** stage. It includes the full
+port scene, six lidar feeds, six 120-degree cameras, an eight-wheel vehicle
+model with steering axles 1/2 and per-wheel Ackermann tire forces, estimated
+empty/loaded dynamics profiles, MPC tracking, chassis-like feedback, safety
+supervision, and a six-camera remote-driving loopback.
+
+The remote-driving path uses H.264 over UDP with a configurable delay, jitter,
+loss, and bandwidth model. With the default `remote` sensor profile on the
+development RTX 3070 system, all six decoded feeds have been verified at about
+15 FPS with a configured 50 ms one-way delay. The Galactic workspace contains
+the compatible simulation subset and Docker helpers; new remote-driving work is
+currently Humble-only.
+
+The repository is not a production real-vehicle package yet. Vendor CAN DBC or
+Ethernet ICD integration, measured vehicle/load parameters, production sensor
+calibration and timing, hardware E-stop/mode/watchdog validation, and real
+5G/video-link integration remain outstanding.
+
+### One-to-One Vehicle Replication / 一比一复刻状态
+
+This is a functional digital prototype, not a one-to-one validated real-vehicle
+replica. The known vehicle dimensions, mass, axle locations, eight-wheel layout,
+first-two-axle steering, and sensor layout have been modeled. Vehicle/load
+dynamics, tire and actuator behavior, sensor calibration, chassis protocol, and
+remote network behavior still contain engineering assumptions or simulated data.
+Real calibration files, vendor protocol definitions, and closed-course empty and
+loaded test logs are required before one-to-one correlation can be claimed.
+
+当前是可运行的数字样机，不是一比一验证后的实车复刻。已按已有资料实现车辆尺寸、
+质量、轴位、八轮结构、前两轴转向和传感器布局；但车辆/负载动力学、轮胎和执行器
+特性、传感器标定、底盘协议与远驾网络中仍有工程估计或仿真数据。拿到实车标定文件、
+厂家协议和空载/带载闭场测试记录后，才能进行一比一参数对齐和回归验证。
+
+Humble 是当前主要开发版本，项目处于**丰富仿真 / 实车预集成**阶段。现已包含完整
+港区场景、六路激光雷达、六路 120 度摄像头、前两轴转向的八轮逐轮 Ackermann
+轮胎力模型、空载和负载估计参数、MPC 跟踪、底盘反馈仿真、安全监督及六路远程
+驾驶回环。
+
+远驾链路采用 H.264/UDP，并可配置时延、抖动、丢包和带宽。开发机 RTX 3070 上，
+默认 `remote` 传感器配置已验证六路解码画面约 15 FPS，配置的单向网络时延为
+50 ms。Galactic 工作空间保留兼容仿真功能和 Docker 启动工具；新增远驾功能目前
+只在 Humble 中维护。
+
+当前仍不能直接作为实车量产部署包使用，尚需完成厂家 CAN DBC / 以太网 ICD、
+实测车辆及负载参数、正式传感器标定与时间同步、硬件急停/模式/看门狗验证，以及
+真实 5G 和视频链路接入。
+
 ## Quick Start With Docker / Docker 快速启动
 
 The Galactic workspace expects a Docker image named

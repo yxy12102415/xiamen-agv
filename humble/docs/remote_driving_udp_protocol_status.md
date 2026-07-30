@@ -70,33 +70,37 @@ neither root access nor Linux `tc/netem` configuration.
 
 ### Video transport boundary / 视频传输边界
 
-The camera link keeps Gazebo rendering and sensor settings unchanged. Six
-Python senders encode full frames using five `h264_nvenc` sessions plus one
-reserved `libx264` session (with automatic runtime fallback),
-carry Annex-B packets over loopback UDP, and apply delay/jitter/loss and
-bandwidth limits. Six C++ receivers drive FFmpeg decoders and publish directly
-to `/remote/video/*/image`. Defaults are
+The camera link keeps the Gazebo scene unchanged. Six C++ senders read images
+directly from Gazebo Transport and encode them using five `h264_nvenc` sessions
+plus one reserved `libx264` session, with automatic runtime fallback when NVENC
+is unavailable. Annex-B packets pass through a loopback UDP impairment proxy
+that applies delay, jitter, loss, and bandwidth limits. Six C++ receivers drive
+FFmpeg decoders and publish directly to `/remote/video/*/image`. Defaults are
 `1.5 Mbit/s` per camera, `100 Mbit/s` aggregate capacity, and `50 ms` one-way
-network delay. Synthetic 15 Hz tests measured approximately `117-161 ms`
-capture-to-decoded delivery with the 50 ms network setting.
+network delay.
 
-当前链路不会改变 Gazebo 场景和摄像头参数。六路 Python 发送节点分别进行
-`h264_nvenc` 编码（不可用时回退 `libx264`）、Annex-B/UDP 传输、延迟/抖动/丢包与
-带宽限制；六路 C++ 接收节点通过 FFmpeg 解码并发布到 `/remote/video/*/image`。
-默认每路 `1.5 Mbit/s`、总上限
-`100 Mbit/s`、单向网络延迟 `50 ms`。15 Hz 合成画面测试的采集到解码时延约
-`117-161 ms`。这仍是本机环回原型，不是正式 RTP/SRT/WebRTC/5G 链路，也没有鉴权、
-加密、FEC 或真实运营商 QoS。
+当前链路不会改变 Gazebo 场景。六路 C++ 发送节点直接从 Gazebo Transport 读取
+图像，默认五路使用 `h264_nvenc`、一路使用 `libx264`，NVENC 不可用时自动回退。
+Annex-B 码流经过 UDP 网络损伤代理施加延迟、抖动、丢包和带宽限制，六路 C++
+接收节点通过 FFmpeg 解码并发布到 `/remote/video/*/image`。默认每路
+`1.5 Mbit/s`、总上限 `100 Mbit/s`、单向网络延迟 `50 ms`。这仍是本机环回原型，
+不是正式 RTP/SRT/WebRTC/5G 链路，也没有鉴权、加密、FEC 或真实运营商 QoS。
+
+远驾启动默认采用 `remote` 传感器配置：前视 `960x540`，其余五路 `640x360`，
+LiDAR 水平采样上限为 `900`。`full` 保留原始传感器精度，`fast` 进一步降低相机
+分辨率和 LiDAR 水平采样。三种配置均不改变场景模型、传感器位姿、视场角、量程、
+垂直线数和更新频率。
 
 REMOTE 模式默认要求前视接收端保持 LIVE。连续约 `1 s` 没有前视解码帧，或超过
 `1.5 s` 没有接收端健康诊断，仲裁器输出 `REMOTE:STOPPED_VIDEO_STALE` 并使用最大
 `4 m/s^2` 制动限值生成停车指令。发送端诊断只说明码流已经发出，不能解除该安全门。
 
-当前回归结果：320x180 合成源在 15 Hz 下编码和 C++ 解码均为约 `15.0 fps`，订阅端
-约 `14.3 fps`，50 ms 配置下包延迟约 `51.8 ms`；100% 视频丢包测试中接收端为
-`0` 帧、发送端正确统计全部丢包。持续控制命令下停止接收端视频健康消息后，仲裁器
-在约 `1.46 s` 后进入 `STOPPED_VIDEO_STALE`。完整港区场景未做任何简化，六路观察
-帧率约 `4.9-10.5 fps`，当前剩余瓶颈主要是 Gazebo 相机和激光雷达 GPU 渲染。
+当前回归结果：100% 视频丢包测试中接收端为 `0` 帧、发送端正确统计全部丢包；
+持续控制命令下停止接收端视频健康消息后，仲裁器在约 `1.46 s` 后进入
+`STOPPED_VIDEO_STALE`。完整港区场景未做简化。NVIDIA 驱动恢复后，RTX 3070
+使用默认 `remote` 配置实测六路接收端均约 `15.0 FPS`，配置的单向延迟为 `50 ms`，
+接收端报告的图像年龄约 `38-72 ms`，网络代理未报告丢包。五路编码使用 NVENC，
+右后一路使用 `libx264`。
 
 连接真实 B&R 控制器时关闭模拟端，并传入真实地址，例如：
 

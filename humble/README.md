@@ -175,6 +175,12 @@ Implemented and working:
   - hanging containers under quay cranes on the controller trajectory lane.
 - Wheel TF, the dynamic tire model, and MPC prediction apply the same Ackermann
   inner/outer geometry to eight wheel stations; only axles 1 and 2 steer.
+- Six-camera remote-driving loopback with 40 Hz command/feedback UDP, H.264
+  video transport, configurable delay/jitter/loss/bandwidth, video-stale safety
+  interlock, and one-window WASD control.
+- Selectable `full`, `remote`, and `fast` runtime sensor profiles. The default
+  `remote` profile has been verified at about 15 FPS on all six decoded feeds
+  with an RTX 3070 and a configured 50 ms one-way delay.
 
 Recent scene layout:
 
@@ -188,6 +194,22 @@ Recent scene layout:
   `0, 45, 90, 135, 180, 225`.
 - Quay hanging containers are at x `52, 148, 244, 340`, y `10.0013`, z `10.0`,
   with the long side along x.
+
+### One-to-One Vehicle Replication / 一比一复刻状态
+
+The simulator is a functional digital prototype, not a one-to-one validated
+real-vehicle replica. Known dimensions, mass, axle locations, eight-wheel
+layout, steering-axle selection, and sensor layout are represented. The
+vehicle/load dynamics, tire and actuator characteristics, sensor calibration,
+chassis protocol, and remote network still include engineering assumptions or
+simulated data. Real calibration files, vendor protocol definitions, and empty
+and loaded closed-course logs are required for one-to-one correlation.
+
+当前仿真是可运行的数字样机，不是一比一验证后的实车复刻。已按已知资料实现车辆
+尺寸、质量、轴位、八轮结构、前两轴转向及传感器布局；车辆/负载动力学、轮胎和
+执行器特性、传感器标定、底盘协议与远驾网络仍包含工程估计或仿真数据。只有拿到
+实车标定文件、厂家协议以及空载/带载闭场测试记录后，才能完成一比一参数对齐与回归
+验证。
 
 ## Real Vehicle Readiness
 
@@ -204,6 +226,8 @@ remaining work is calibration, interface validation, and safety verification:
 - Run low-speed closed-course tests before enabling higher-speed MPC tracking.
 - Add loaded-vehicle parameters or adaptive/gain-scheduled MPC before carrying
   containers on the real vehicle.
+- Replace the local UDP/video loopback with the production authenticated
+  5G/video transport and validate its end-to-end delay and fail-safe behavior.
 
 ### Real Vehicle Interface Status
 
