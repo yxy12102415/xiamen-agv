@@ -178,6 +178,9 @@ Implemented and working:
 - Six-camera remote-driving loopback with 40 Hz command/feedback UDP, H.264
   video transport, configurable delay/jitter/loss/bandwidth, video-stale safety
   interlock, and one-window WASD control.
+- Active one-window remote cockpit buttons: `REMOTE`, `AUTO`, `E-STOP`, and
+  `RESET`, with fixed-target W/S speed control and a `3.0 m/s` simulated
+  forward-speed limit.
 - Selectable `full`, `remote`, and `fast` runtime sensor profiles. The default
   `remote` profile has been verified at about 15 FPS on all six decoded feeds
   with an RTX 3070 and a configured 50 ms one-way delay.
@@ -320,6 +323,9 @@ Currently matched / configured:
 - Mass: `23000 kg`.
 - Wheel rolling radius: `0.66 m`.
 - Steering rate limit: `0.261799 rad/s` = `15 deg/s`.
+- Steering dead band: `0.005236 rad` = `0.3 deg`, estimated.
+- Steering backlash: `0.003491 rad` = `0.2 deg`, estimated and applied to both
+  vehicle dynamics and MPC prediction profiles.
 - Max drive acceleration: `0.35 m/s^2`.
 - Max brake deceleration: `4.0 m/s^2`, aligned with the line-control braking
   requirement rather than the older table value of `0.35 m/s^2`.
@@ -639,6 +645,12 @@ The remote-driving simulation defaults to `3.0 m/s` forward, `0.3 m/s` reverse,
 and `0.35 m/s^2` maximum drive acceleration. These are simulation limits, not
 validated real-vehicle operating limits.
 
+The cockpit buttons are active in simulation: `REMOTE` and `AUTO` publish
+authority requests to `/agv/control/authority/request`, while `E-STOP` and
+`RESET` drive the remote-side emergency-stop state on
+`/remote/operator/emergency_stop`. They are not a physical E-stop chain until
+the real chassis protocol and hardware safety circuit are integrated.
+
 REMOTE control requires both explicit arming and window focus. Losing focus,
 closing the window, or losing the operator process immediately disarms the
 console and makes the vehicle stop. The legacy terminal controller remains available with
@@ -675,6 +687,10 @@ UDP/TLV 域控网关和模拟 B&R 车端控制器，再进入 REMOTE 输入；MP
 
 远驾仿真默认前进速度上限为 `3.0 m/s`、倒车上限为 `0.3 m/s`、最大驱动加速度为
 `0.35 m/s^2`。它们是仿真限值，尚不是经过实车验证的运行限值。
+控制台按钮在仿真里不是摆设：`REMOTE` 和 `AUTO` 会向
+`/agv/control/authority/request` 发布控制权请求，`E-STOP` 和 `RESET` 会驱动
+`/remote/operator/emergency_stop` 上的远驾侧急停状态。它们目前还不是实车硬件
+急停链路，真正上车前还需要接入底盘协议和硬件安全回路。
 如果终端或图形窗口被强制关闭，可执行 `./sim.sh stop` 一次性关闭本项目残留的
 Gazebo、RViz、传感器桥和控制节点，再重新启动。
 点击任意侧视或后视小画面，可以把该摄像头切换到上方主画面，再次点击其他画面即可

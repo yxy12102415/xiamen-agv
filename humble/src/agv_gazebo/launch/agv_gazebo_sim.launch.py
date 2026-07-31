@@ -869,7 +869,7 @@ def generate_launch_description():
                         "all_wheel_drive": True,
                         "steer_delay": 0.02,
                         "steer_time_constant": 0.05,
-                        "steer_dead_band": 0.0,
+                        "steer_dead_band": 0.005236,
                         "steer_bias": 0.0,
                         "steering_mode_transition_time": 0.45,
                         "initial_x": initial_x,

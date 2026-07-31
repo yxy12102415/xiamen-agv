@@ -34,9 +34,12 @@ supervision, and a six-camera remote-driving loopback.
 The remote-driving path uses H.264 over UDP with a configurable delay, jitter,
 loss, and bandwidth model. With the default `remote` sensor profile on the
 development RTX 3070 system, all six decoded feeds have been verified at about
-15 FPS with a configured 50 ms one-way delay. The Galactic workspace contains
-the compatible simulation subset and Docker helpers; new remote-driving work is
-currently Humble-only.
+15 FPS with a configured 50 ms one-way delay. The Humble remote console uses a
+one-window six-camera cockpit with active `REMOTE`, `AUTO`, `E-STOP`, and
+`RESET` controls, fixed-target W/S speed control, a `3.0 m/s` forward limit,
+and simulated chassis feedback. The Galactic workspace contains the compatible
+simulation subset and Docker helpers; new remote-driving work is currently
+Humble-only.
 
 The repository is not a production real-vehicle package yet. Vendor CAN DBC or
 Ethernet ICD integration, measured vehicle/load parameters, production sensor
@@ -65,8 +68,10 @@ Humble 是当前主要开发版本，项目处于**丰富仿真 / 实车预集�
 
 远驾链路采用 H.264/UDP，并可配置时延、抖动、丢包和带宽。开发机 RTX 3070 上，
 默认 `remote` 传感器配置已验证六路解码画面约 15 FPS，配置的单向网络时延为
-50 ms。Galactic 工作空间保留兼容仿真功能和 Docker 启动工具；新增远驾功能目前
-只在 Humble 中维护。
+50 ms。Humble 远驾控制台已整合为一个六路摄像头驾驶窗口，`REMOTE`、`AUTO`、
+`E-STOP` 和 `RESET` 按钮会发出仿真模式/急停指令；W/S 采用定速增减，前进速度
+上限为 `3.0 m/s`，并显示模拟底盘反馈。Galactic 工作空间保留兼容仿真功能和
+Docker 启动工具；新增远驾功能目前只在 Humble 中维护。
 
 当前仍不能直接作为实车量产部署包使用，尚需完成厂家 CAN DBC / 以太网 ICD、
 实测车辆及负载参数、正式传感器标定与时间同步、硬件急停/模式/看门狗验证，以及
