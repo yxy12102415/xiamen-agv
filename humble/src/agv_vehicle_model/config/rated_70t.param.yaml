@@ -27,14 +27,14 @@ agv_two_axis_simulator:
     max_drive_power_kw: 280.0
     drive_accel_dead_band: 0.02
     brake_decel_dead_band: 0.05
-    steer_backlash: 0.003491
+    steer_backlash: 0.0
     use_smooth_tire_saturation: true
 
 sampling_mpc_controller:
   ros__parameters:
     prediction_drive_accel_dead_band: 0.02
     prediction_brake_decel_dead_band: 0.05
-    prediction_steer_backlash: 0.003491
+    prediction_steer_backlash: 0.0
 
 simulated_chassis_feedback:
   ros__parameters:

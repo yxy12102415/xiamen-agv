@@ -56,11 +56,10 @@ class WasdOperator(Node):
         self.root = root
         self.declare_parameter("publish_rate", 30.0)
         self.declare_parameter("camera_render_rate", 15.0)
-        self.declare_parameter("max_velocity", 0.5)
+        self.declare_parameter("max_velocity", 3.0)
         self.declare_parameter("max_reverse_velocity", 0.3)
-        self.declare_parameter("throttle_acceleration", 0.35)
-        self.declare_parameter("reverse_acceleration", 0.25)
-        self.declare_parameter("coast_deceleration", 0.35)
+        self.declare_parameter("speed_step", 0.10)
+        self.declare_parameter("max_drive_acceleration", 0.35)
         self.declare_parameter("brake_deceleration", 4.0)
         self.declare_parameter("front_steer_limit", 0.47822)
         self.declare_parameter("rear_steer_limit", 0.39444)
@@ -75,14 +74,9 @@ class WasdOperator(Node):
         self.max_reverse_velocity = float(
             self.get_parameter("max_reverse_velocity").value
         )
-        self.throttle_acceleration = float(
-            self.get_parameter("throttle_acceleration").value
-        )
-        self.reverse_acceleration = float(
-            self.get_parameter("reverse_acceleration").value
-        )
-        self.coast_deceleration = float(
-            self.get_parameter("coast_deceleration").value
+        self.speed_step = float(self.get_parameter("speed_step").value)
+        self.max_drive_acceleration = float(
+            self.get_parameter("max_drive_acceleration").value
         )
         self.brake_deceleration = float(
             self.get_parameter("brake_deceleration").value
@@ -98,6 +92,7 @@ class WasdOperator(Node):
         self.gear = GearCommand.DRIVE
         self.estop = False
         self.focus_active = False
+        self.control_armed = False
         self.keys_down = set()
         self.pending_releases = {}
         self.last_update = time.monotonic()
@@ -126,6 +121,8 @@ class WasdOperator(Node):
         self.video_network = {}
         self.vehicle_state = {}
         self.vehicle_state_received_at = 0.0
+        self.chassis_summary = {}
+        self.chassis_received_at = 0.0
 
         self.control_pub = self.create_publisher(
             Control, "/remote/operator/control_cmd", 1
@@ -170,6 +167,12 @@ class WasdOperator(Node):
         )
         self.create_subscription(
             String,
+            "/agv/chassis/state_summary",
+            self.on_chassis_summary,
+            10,
+        )
+        self.create_subscription(
+            String,
             "/remote/network/video_state",
             self.on_video_network,
             10,
@@ -180,84 +183,139 @@ class WasdOperator(Node):
 
     def build_window(self):
         self.root.title("AGV Remote Driving Console")
-        self.root.geometry("1280x760")
-        self.root.minsize(1160, 700)
-        self.root.configure(bg="#17191c")
+        self.root.geometry("1440x860")
+        self.root.minsize(1280, 760)
+        self.root.configure(bg="#111417")
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.bind("<KeyPress>", self.on_key_press)
         self.root.bind("<KeyRelease>", self.on_key_release)
         self.root.bind("<FocusIn>", self.on_focus_in)
         self.root.bind("<FocusOut>", self.on_focus_out)
 
-        outer = tk.Frame(self.root, bg="#17191c")
-        outer.pack(fill="both", expand=True, padx=14, pady=14)
-
-        control_panel = tk.Frame(outer, bg="#23272b", width=300)
-        control_panel.pack(side="left", fill="y", padx=(0, 14))
-        control_panel.pack_propagate(False)
-
-        video_panel = tk.Frame(outer, bg="#101214")
-        video_panel.pack(side="left", fill="both", expand=True)
-
-        title = tk.Label(
-            control_panel,
+        header = tk.Frame(self.root, bg="#1b2024", height=54)
+        header.pack(fill="x", padx=12, pady=(12, 0))
+        header.pack_propagate(False)
+        tk.Label(
+            header,
             text="AGV REMOTE DRIVE",
             font=("Sans", 17, "bold"),
-            fg="#f2f4f5",
-            bg="#23272b",
+            fg="#f4f6f8",
+            bg="#1b2024",
+        ).pack(side="left", padx=18)
+        self.header_status_label = tk.Label(
+            header,
+            text="CONTROL INITIALIZING",
+            font=("Sans", 10, "bold"),
+            fg="#ffca5c",
+            bg="#1b2024",
         )
-        title.pack(pady=(24, 6))
+        self.header_status_label.pack(side="right", padx=18)
+
+        outer = tk.Frame(self.root, bg="#111417")
+        outer.pack(fill="both", expand=True, padx=12, pady=12)
+        outer.grid_columnconfigure(1, weight=1)
+        outer.grid_rowconfigure(0, weight=1)
+
+        control_panel = tk.Frame(outer, bg="#20262b", width=300)
+        control_panel.grid(row=0, column=0, sticky="ns", padx=(0, 12))
+        control_panel.grid_propagate(False)
+
+        video_panel = tk.Frame(outer, bg="#0b0e10")
+        video_panel.grid(row=0, column=1, sticky="nsew")
+        video_panel.grid_columnconfigure(0, weight=1)
 
         self.focus_label = tk.Label(
             control_panel,
-            text="CLICK THIS WINDOW TO ENABLE CONTROL",
-            font=("Sans", 9, "bold"),
+            text="CONTROL ARMING",
+            font=("Sans", 10, "bold"),
             fg="#ffca5c",
-            bg="#23272b",
-            wraplength=260,
+            bg="#20262b",
+            pady=16,
         )
-        self.focus_label.pack(pady=(0, 22), padx=12)
+        self.focus_label.pack(fill="x")
 
-        controls = tk.Frame(control_panel, bg="#17191c", padx=12, pady=16)
-        controls.pack(fill="x", padx=14)
-        tk.Label(
-            controls,
-            text="W  THROTTLE\nS  BRAKE / REVERSE\nA / D  STEER",
-            font=("Sans", 12, "bold"),
-            fg="#e7ecef",
-            bg="#17191c",
-            justify="left",
-        ).pack()
-        tk.Label(
-            controls,
-            text="SPACE  BRAKE\nE  E-STOP     Z  RESET\nQ / ESC  QUIT",
-            font=("Sans", 10),
-            fg="#bfc7cc",
-            bg="#17191c",
-            justify="left",
-        ).pack(pady=(14, 0))
+        mode_actions = tk.Frame(control_panel, bg="#20262b")
+        mode_actions.pack(fill="x", padx=14, pady=(0, 10))
+        self.make_action_button(
+            mode_actions, "REMOTE", "#24734f", self.enable_remote
+        ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.make_action_button(
+            mode_actions, "AUTO", "#3e586d", self.enable_auto
+        ).grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        mode_actions.grid_columnconfigure(0, weight=1)
+        mode_actions.grid_columnconfigure(1, weight=1)
 
+        safety_actions = tk.Frame(control_panel, bg="#20262b")
+        safety_actions.pack(fill="x", padx=14, pady=(0, 14))
+        self.make_action_button(
+            safety_actions, "E-STOP", "#a93636", self.activate_estop
+        ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        self.make_action_button(
+            safety_actions, "RESET", "#6a5632", self.reset_estop
+        ).grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        safety_actions.grid_columnconfigure(0, weight=1)
+        safety_actions.grid_columnconfigure(1, weight=1)
+
+        self.make_section_label(control_panel, "DRIVING").pack(
+            fill="x", padx=14, pady=(0, 4)
+        )
         self.telemetry_label = tk.Label(
             control_panel,
-            text="SPEED\n+0.00 m/s\n\nSTEER\n+0.0 deg",
-            font=("Monospace", 16, "bold"),
-            fg="#70d6a5",
-            bg="#23272b",
+            text="COMMAND  +0.00 m/s\nACTUAL   +0.00 m/s\nFRONT    +0.0 deg\nREAR     +0.0 deg",
+            font=("Monospace", 13, "bold"),
+            fg="#72d7a5",
+            bg="#171c20",
+            justify="left",
+            anchor="w",
+            padx=12,
+            pady=10,
         )
-        self.telemetry_label.pack(pady=(28, 14))
+        self.telemetry_label.pack(fill="x", padx=14)
 
+        self.make_section_label(control_panel, "CHASSIS").pack(
+            fill="x", padx=14, pady=(14, 4)
+        )
+        self.chassis_label = tk.Label(
+            control_panel,
+            text="GEAR   WAITING\nBRAKE  -- bar\nMOTORS WAITING\nFAULT  WAITING",
+            font=("Monospace", 10, "bold"),
+            fg="#c2cbd0",
+            bg="#171c20",
+            justify="left",
+            anchor="w",
+            padx=12,
+            pady=9,
+        )
+        self.chassis_label.pack(fill="x", padx=14)
+
+        self.make_section_label(control_panel, "LINK & SAFETY").pack(
+            fill="x", padx=14, pady=(14, 4)
+        )
         self.state_label = tk.Label(
             control_panel,
-            text="REMOTE READY - RELEASE KEYS TO STOP",
-            font=("Sans", 10),
-            fg="#9ca6ad",
-            bg="#23272b",
-            wraplength=260,
+            text="CONTROL WAITING\nVIDEO WAITING\nFEEDBACK WAITING",
+            font=("Monospace", 10, "bold"),
+            fg="#aeb7bc",
+            bg="#171c20",
+            justify="left",
+            anchor="w",
+            padx=12,
+            pady=9,
         )
-        self.state_label.pack(padx=14)
+        self.state_label.pack(fill="x", padx=14)
+
+        tk.Label(
+            control_panel,
+            text="W/S  SPEED     A/D  STEER     SPACE  BRAKE\nE  E-STOP      Z  RESET      Q  QUIT",
+            font=("Sans", 9, "bold"),
+            fg="#9ca6ad",
+            bg="#20262b",
+            justify="center",
+            pady=14,
+        ).pack(side="bottom", fill="x", padx=12)
 
         front_caption = self.make_camera_caption(video_panel, "front")
-        front_caption.pack(fill="x")
+        front_caption.pack(fill="x", padx=8, pady=(8, 0))
         front_label = tk.Label(
             video_panel,
             text="FRONT CAMERA\nWAITING FOR VIDEO",
@@ -265,11 +323,11 @@ class WasdOperator(Node):
             fg="#6f787e",
             bg="#0b0d0e",
         )
-        front_label.pack(fill="x")
+        front_label.pack(fill="both", expand=True, padx=8)
         self.camera_labels["front"] = front_label
 
         thumbnails = tk.Frame(video_panel, bg="#101214")
-        thumbnails.pack(fill="x", pady=(8, 0))
+        thumbnails.pack(fill="x", padx=8, pady=(8, 8))
         thumbnail_names = (
             "rear",
             "left_front",
@@ -292,6 +350,33 @@ class WasdOperator(Node):
             label.pack(fill="both", expand=True)
             self.camera_labels[camera_name] = label
         self.bind_camera_selection()
+
+    @staticmethod
+    def make_section_label(parent, text):
+        return tk.Label(
+            parent,
+            text=text,
+            font=("Sans", 9, "bold"),
+            fg="#8ea0ab",
+            bg="#20262b",
+            anchor="w",
+        )
+
+    def make_action_button(self, parent, text, color, command):
+        return tk.Button(
+            parent,
+            text=text,
+            font=("Sans", 10, "bold"),
+            fg="#f7f8fa",
+            bg=color,
+            activebackground=color,
+            activeforeground="#ffffff",
+            relief="flat",
+            bd=0,
+            padx=8,
+            pady=9,
+            command=command,
+        )
 
     def make_camera_caption(self, parent, camera_name):
         label = tk.Label(
@@ -346,24 +431,30 @@ class WasdOperator(Node):
 
     def on_key_press(self, event):
         key = self.normalized_key(event)
-        release_job = self.pending_releases.pop(key, None)
-        if release_job is not None:
-            self.root.after_cancel(release_job)
-        first_press = key not in self.keys_down
-        self.keys_down.add(key)
-        if not first_press:
-            return
         if key == "e":
-            self.estop = True
-            self.velocity = 0.0
+            self.activate_estop()
         elif key == "z" and abs(self.velocity) < 0.02:
-            self.estop = False
+            self.reset_estop()
         elif key == "r":
-            self.request_mode("REMOTE")
+            self.enable_remote()
         elif key == "m":
-            self.request_mode("AUTO")
+            self.enable_auto()
         elif key in ("q", "escape"):
             self.close()
+        elif key == "w" and self.control_armed:
+            self.velocity = min(self.max_velocity, self.velocity + self.speed_step)
+        elif key == "s" and self.control_armed:
+            self.velocity = max(
+                -self.max_reverse_velocity, self.velocity - self.speed_step
+            )
+        elif key == "space" and self.control_armed:
+            self.velocity = 0.0
+            self.command_acceleration = -self.brake_deceleration
+        elif key in ("a", "d") and self.control_armed:
+            release_job = self.pending_releases.pop(key, None)
+            if release_job is not None:
+                self.root.after_cancel(release_job)
+            self.keys_down.add(key)
 
     def on_key_release(self, event):
         key = self.normalized_key(event)
@@ -383,6 +474,10 @@ class WasdOperator(Node):
 
     def on_focus_out(self, _event):
         self.focus_active = False
+        self.disarm_control()
+
+    def disarm_control(self):
+        self.control_armed = False
         self.keys_down.clear()
         for job in self.pending_releases.values():
             self.root.after_cancel(job)
@@ -392,6 +487,31 @@ class WasdOperator(Node):
         msg = String()
         msg.data = mode
         self.mode_pub.publish(msg)
+
+    def enable_remote(self):
+        self.disarm_control()
+        self.velocity = 0.0
+        self.front_steer = 0.0
+        self.rear_steer = 0.0
+        self.control_armed = True
+        self.request_mode("REMOTE")
+        self.activate_window()
+
+    def enable_auto(self):
+        self.disarm_control()
+        self.request_mode("AUTO")
+        self.activate_window()
+
+    def activate_estop(self):
+        self.disarm_control()
+        self.estop = True
+        self.velocity = 0.0
+        self.activate_window()
+
+    def reset_estop(self):
+        if abs(self.velocity) < 0.02:
+            self.estop = False
+        self.activate_window()
 
     def on_camera_image(self, camera_name, msg):
         with self.camera_lock:
@@ -444,38 +564,17 @@ class WasdOperator(Node):
         except (TypeError, ValueError):
             self.vehicle_state = {}
 
+    def on_chassis_summary(self, msg):
+        try:
+            self.chassis_summary = json.loads(msg.data)
+            self.chassis_received_at = time.monotonic()
+        except (TypeError, ValueError):
+            self.chassis_summary = {}
+
     def update_targets(self, dt):
-        if self.estop or not self.focus_active:
+        if self.estop or not self.focus_active or not self.control_armed:
             self.velocity = approach(
                 self.velocity, 0.0, self.brake_deceleration * dt
-            )
-        elif "space" in self.keys_down:
-            self.velocity = approach(
-                self.velocity, 0.0, self.brake_deceleration * dt
-            )
-        elif "w" in self.keys_down and "s" not in self.keys_down:
-            if self.velocity < 0.0:
-                self.velocity = approach(
-                    self.velocity, 0.0, self.brake_deceleration * dt
-                )
-            else:
-                self.velocity = min(
-                    self.max_velocity,
-                    self.velocity + self.throttle_acceleration * dt,
-                )
-        elif "s" in self.keys_down and "w" not in self.keys_down:
-            if self.velocity > 0.0:
-                self.velocity = approach(
-                    self.velocity, 0.0, self.brake_deceleration * dt
-                )
-            else:
-                self.velocity = max(
-                    -self.max_reverse_velocity,
-                    self.velocity - self.reverse_acceleration * dt,
-                )
-        else:
-            self.velocity = approach(
-                self.velocity, 0.0, self.coast_deceleration * dt
             )
 
         steer_direction = 0.0
@@ -498,6 +597,19 @@ class WasdOperator(Node):
             self.gear = GearCommand.DRIVE
         elif self.velocity < -0.01:
             self.gear = GearCommand.REVERSE
+
+    def feedback_velocity(self):
+        if (
+            self.chassis_received_at > 0.0
+            and time.monotonic() - self.chassis_received_at <= 1.0
+        ):
+            return float(self.chassis_summary.get("actual_velocity_mps", 0.0))
+        if (
+            self.vehicle_state_received_at > 0.0
+            and time.monotonic() - self.vehicle_state_received_at <= 1.0
+        ):
+            return float(self.vehicle_state.get("speed_feedback", 0.0))
+        return 0.0
 
     def publish_commands(self):
         stamp = self.get_clock().now().to_msg()
@@ -530,7 +642,7 @@ class WasdOperator(Node):
         self.gear_pub.publish(gear)
 
         deadman = Bool()
-        deadman.data = self.focus_active and not self.estop
+        deadman.data = self.focus_active and self.control_armed and not self.estop
         self.deadman_pub.publish(deadman)
 
         estop = Bool()
@@ -538,18 +650,37 @@ class WasdOperator(Node):
         self.estop_pub.publish(estop)
 
     def update_labels(self):
-        feedback_fresh = (
+        vehicle_feedback_fresh = (
             self.vehicle_state_received_at > 0.0
             and time.monotonic() - self.vehicle_state_received_at <= 1.0
         )
+        chassis_fresh = (
+            self.chassis_received_at > 0.0
+            and time.monotonic() - self.chassis_received_at <= 1.0
+        )
         actual_speed = (
-            float(self.vehicle_state.get("speed_feedback", 0.0))
-            if feedback_fresh
+            float(self.chassis_summary.get("actual_velocity_mps", 0.0))
+            if chassis_fresh
+            else float(self.vehicle_state.get("speed_feedback", 0.0))
+            if vehicle_feedback_fresh
             else 0.0
         )
+        front_steer = (
+            math.degrees(float(self.chassis_summary.get("front_steer_rad", 0.0)))
+            if chassis_fresh
+            else math.degrees(self.front_steer)
+        )
+        rear_steer = (
+            math.degrees(float(self.chassis_summary.get("rear_steer_rad", 0.0)))
+            if chassis_fresh
+            else math.degrees(self.rear_steer)
+        )
         self.telemetry_label.configure(
-            text="COMMAND\n%+.2f m/s\nACTUAL\n%+.2f m/s\n\nSTEER\n%+.1f deg"
-            % (self.velocity, actual_speed, math.degrees(self.front_steer))
+            text=(
+                "COMMAND  %+.2f m/s\nACTUAL   %+.2f m/s\n"
+                "FRONT    %+.1f deg\nREAR     %+.1f deg"
+            )
+            % (self.velocity, actual_speed, front_steer, rear_steer)
         )
         control_delay = self.protocol_diagnostic.get("network", {}).get(
             "delay_ms", 0.0
@@ -560,37 +691,83 @@ class WasdOperator(Node):
         video_delay = self.video_network.get("configured_delay_ms", 0.0)
         video_link = self.video_network.get("link", "WAITING")
         video_transport = self.video_network.get("transport", "RAW ROS")
+        live_camera_count = sum(
+            camera.get("state") == "LIVE"
+            for camera in self.video_network.get("cameras", {}).values()
+        )
         feedback_text = (
             "%.0f ms" % float(feedback_latency)
             if feedback_latency is not None
             else "waiting"
         )
+        brake_pressure = self.chassis_summary.get("brake_pressure_bar")
+        brake_text = (
+            "%.0f bar" % float(brake_pressure)
+            if brake_pressure is not None and chassis_fresh
+            else "-- bar"
+        )
+        battery_level = self.vehicle_state.get("battery_level")
+        battery_text = (
+            "%.0f%%" % float(battery_level)
+            if battery_level is not None and vehicle_feedback_fresh
+            else "--"
+        )
+        fault_text = self.chassis_summary.get("fault_state", "WAITING")
+        if not chassis_fresh:
+            fault_text = "STALE"
+        self.chassis_label.configure(
+            text=(
+                "GEAR   %-8s BAT %s\nBRAKE  %-12s\nMOTORS D:%s S:%s\nFAULT  %s"
+                % (
+                    str(self.chassis_summary.get("gear_state", "WAITING")),
+                    battery_text,
+                    brake_text,
+                    str(self.chassis_summary.get("drive_motor_state", "WAITING")),
+                    str(self.chassis_summary.get("steering_motor_state", "WAITING")),
+                    str(fault_text),
+                )
+            )
+        )
         link_text = (
-            "CTRL %s | TX %.0f ms | FEEDBACK %s\nVIDEO %s | %s | %.0f ms"
+            "CONTROL  %-10s  TX %3.0f ms\n"
+            "VIDEO    %-10s  %d/6 LIVE\n"
+            "FEEDBACK %-10s  %s\n"
+            "TRANSPORT %s / %3.0f ms"
             % (
                 self.protocol_link,
                 float(control_delay),
-                feedback_text,
                 video_link,
+                live_camera_count,
+                "LIVE" if chassis_fresh else "STALE",
+                feedback_text,
                 video_transport,
                 float(video_delay),
             )
         )
         if self.estop:
             self.focus_label.configure(text="EMERGENCY STOP", fg="#ff6b6b")
-            self.state_label.configure(text="PRESS Z AT ZERO SPEED TO RESET\n" + link_text)
-        elif self.focus_active:
+            self.header_status_label.configure(text="E-STOP ACTIVE", fg="#ff6b6b")
+            self.state_label.configure(text=link_text)
+        elif self.focus_active and self.control_armed:
             self.focus_label.configure(text="CONTROL ACTIVE", fg="#70d6a5")
-            self.state_label.configure(
-                text="RELEASE W/S TO COAST - SPACE TO BRAKE\n" + link_text
+            self.header_status_label.configure(
+                text="REMOTE CONTROL ACTIVE", fg="#70d6a5"
             )
+            self.state_label.configure(text=link_text)
+        elif self.focus_active:
+            self.focus_label.configure(text="REMOTE READY", fg="#ffca5c")
+            self.header_status_label.configure(
+                text="CONTROL NOT ARMED", fg="#ffca5c"
+            )
+            self.state_label.configure(text=link_text)
         else:
             self.focus_label.configure(
-                text="CLICK THIS WINDOW TO ENABLE CONTROL", fg="#ffca5c"
+                text="SAFE STOP: WINDOW NOT FOCUSED", fg="#ffca5c"
             )
-            self.state_label.configure(
-                text="WINDOW NOT FOCUSED - SAFE STOP ACTIVE\n" + link_text
+            self.header_status_label.configure(
+                text="CONTROL NOT ARMED", fg="#ffca5c"
             )
+            self.state_label.configure(text=link_text)
 
     def update_camera_metrics(self, now):
         elapsed = now - self.camera_metric_time
@@ -664,7 +841,7 @@ class WasdOperator(Node):
                 continue
             try:
                 rgb = self.bridge.imgmsg_to_cv2(msg, desired_encoding="rgb8")
-                size = (900, 506) if camera_name == self.main_camera else (174, 98)
+                size = (960, 540) if camera_name == self.main_camera else (180, 102)
                 resampling = getattr(PilImage, "Resampling", PilImage)
                 image = PilImage.fromarray(rgb).resize(size, resampling.BILINEAR)
                 photo = ImageTk.PhotoImage(image=image)
@@ -708,15 +885,12 @@ class WasdOperator(Node):
         now = time.monotonic()
         dt = clamp(now - self.last_update, 0.0, 0.1)
         self.last_update = now
-        previous_velocity = self.velocity
         self.update_targets(dt)
-        self.command_acceleration = (
-            (self.velocity - previous_velocity) / dt if dt > 1.0e-4 else 0.0
-        )
+        speed_error = self.velocity - self.feedback_velocity()
         self.command_acceleration = clamp(
-            self.command_acceleration,
+            speed_error / 0.3,
             -self.brake_deceleration,
-            self.throttle_acceleration,
+            self.max_drive_acceleration,
         )
         self.publish_commands()
         self.update_labels()
@@ -727,7 +901,7 @@ class WasdOperator(Node):
             return
         self.closed = True
         self.focus_active = False
-        self.keys_down.clear()
+        self.disarm_control()
         self.velocity = 0.0
         self.command_acceleration = 0.0
         if rclpy.ok():

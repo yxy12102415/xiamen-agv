@@ -107,7 +107,7 @@ case "${MODE}" in
     REMOTE_LAUNCH_PID=""
     REMOTE_VIEWER_PID=""
     REMOTE_USE_GAZEBO_GUI="${AGV_REMOTE_USE_GAZEBO_GUI:-false}"
-    REMOTE_USE_RVIZ="${AGV_REMOTE_USE_RVIZ:-false}"
+    REMOTE_USE_RVIZ="${AGV_REMOTE_USE_RVIZ:-true}"
     export AGV_SENSOR_PROFILE="${AGV_REMOTE_SENSOR_PROFILE:-remote}"
 
     cleanup_remote() {

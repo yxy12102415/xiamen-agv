@@ -123,11 +123,11 @@ actuators:
     value: 0.05
     source: estimated_less_than_100ms_requirement
   steer_dead_band_rad:
-    value: 0.005236
-    source: estimated_small_deadband_0p3deg
+    value: 0.0
+    source: disabled_until_measured_to_ensure_straight_line_return
   steer_backlash_rad:
-    value: 0.003491
-    source: estimated_mechanical_play_0p2deg
+    value: 0.0
+    source: disabled_until_measured_to_ensure_straight_line_return
   drive_accel_dead_band_mps2:
     value: 0.02
     source: estimated_command_dead_zone

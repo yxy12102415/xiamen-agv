@@ -49,7 +49,7 @@ class DomainUdpGateway(Node):
         self.declare_parameter("igv_id", 1)
         self.declare_parameter("control_mode", 5)
         self.declare_parameter("obstacle_bypass", False)
-        self.declare_parameter("max_velocity", 0.5)
+        self.declare_parameter("max_velocity", 3.0)
         self.declare_parameter("max_reverse_velocity", 0.3)
         self.declare_parameter("front_steer_limit", 0.47822)
         self.declare_parameter("max_brake_decel", 1.0)

@@ -54,11 +54,11 @@ class MockBrController(Node):
         self.declare_parameter("network_loss_percent", 0.0)
         self.declare_parameter("network_seed", 7000)
         self.declare_parameter("network_delivery_rate", 200.0)
-        self.declare_parameter("max_velocity", 0.5)
+        self.declare_parameter("max_velocity", 3.0)
         self.declare_parameter("max_reverse_velocity", 0.3)
         self.declare_parameter("front_steer_limit", 0.47822)
         self.declare_parameter("rear_steer_limit", 0.39444)
-        self.declare_parameter("max_drive_accel", 0.2)
+        self.declare_parameter("max_drive_accel", 0.35)
         self.declare_parameter("max_brake_decel", 1.0)
         self.declare_parameter("battery_level", 100.0)
 

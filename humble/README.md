@@ -607,12 +607,13 @@ cd /data/projects/xiamen-agv-sim/humble
 ./sim.sh remote
 ```
 
-This one command starts the Gazebo server, the command arbiter, and one
-GTA-style WASD console containing all six camera views. Gazebo GUI and RViz are
-off by default to reserve rendering capacity for sensors. Enable them with
-`AGV_REMOTE_USE_GAZEBO_GUI=true` or `AGV_REMOTE_USE_RVIZ=true`. Closing the
-control window or pressing `Ctrl+C` stops the whole session. The old separate
-camera window is available only when explicitly requested with
+This one command starts the Gazebo server, RViz, the command arbiter, and one
+GTA-style WASD console containing all six camera views. Gazebo GUI remains off
+by default; set `AGV_REMOTE_USE_GAZEBO_GUI=true` to display it. RViz can be
+disabled for maximum sensor-rendering performance with
+`AGV_REMOTE_USE_RVIZ=false`. Closing the control window or pressing `Ctrl+C`
+stops the whole session. The old separate camera window is available only when
+explicitly requested with
 `AGV_REMOTE_CAMERA_VIEWER=1 ./sim.sh remote`.
 
 If a terminal or GUI is force-closed, stop every process from this simulation
@@ -620,18 +621,27 @@ with `./sim.sh stop` before starting it again.
 
 WASD control-window keys:
 
-- Hold `W`: accelerate forward; release it to coast to a stop.
-- Hold `S`: brake, then reverse after reaching zero speed.
+- `W`: increase target speed by `0.10 m/s` per key press; the speed remains set
+  after release.
+- `S`: decrease target speed by `0.10 m/s` per key press; further presses after
+  zero select reverse.
 - Hold `A` / `D`: steer left / right; steering returns to center on release.
 - Hold `Space`: brake to zero.
 - `E`: latch remote E-stop; `Z`: reset at zero speed.
-- `R` / `M`: request REMOTE / AUTO authority while stopped.
+- Click `REMOTE` or press `R`: arm REMOTE control while stopped. The console
+  clears any held directional key before arming, so a fresh `W/S/A/D` press is
+  required to command motion.
+- Click `AUTO` or press `M`: return to AUTO and disarm the remote console.
 - `Q` or `Esc`: close the complete remote-driving session.
 - Click any side/rear camera tile to promote it to the large main view.
 
-The control window itself is the deadman: losing window focus, closing the
-window, or losing the operator process makes the vehicle stop. The legacy
-terminal controller remains available with
+The remote-driving simulation defaults to `3.0 m/s` forward, `0.3 m/s` reverse,
+and `0.35 m/s^2` maximum drive acceleration. These are simulation limits, not
+validated real-vehicle operating limits.
+
+REMOTE control requires both explicit arming and window focus. Losing focus,
+closing the window, or losing the operator process immediately disarms the
+console and makes the vehicle stop. The legacy terminal controller remains available with
 `AGV_REMOTE_TERMINAL_CONTROL=1 ./sim.sh remote`.
 
 All six camera panels target the same `15 Hz` rate as the Gazebo cameras. Their
@@ -650,15 +660,21 @@ UDP/TLV 域控网关和模拟 B&R 车端控制器，再进入 REMOTE 输入；MP
 输入。只有当前获得控制权的一方能够进入 `agv_safety_supervisor`。默认是 `AUTO`，
 并且车辆速度不超过 `0.05 m/s` 时才允许切换控制权。
 
-只需执行 `./sim.sh remote`：它会启动无界面的 Gazebo server、控制仲裁器和一个
-包含六路摄像头画面的 GTA 风格 WASD 驾驶台；Gazebo GUI 和 RViz 默认关闭，把
-渲染能力留给传感器。需要时分别设置 `AGV_REMOTE_USE_GAZEBO_GUI=true` 或
-`AGV_REMOTE_USE_RVIZ=true`。关闭驾驶台或按 `Ctrl+C` 会关闭整套远程驾驶进程。
-点击驾驶台窗口后，按住 `W` 前进，
-按住 `S` 制动并在停车后倒车，`A/D` 左右转向，松开方向键自动回正，`Space` 制动。
-`E` 锁存急停，停车后按 `Z` 复位。控制窗口本身就是 deadman：窗口失去焦点、被关闭
-或控制进程中断时，车辆都会自动停车。旧终端控制仍可通过
+只需执行 `./sim.sh remote`：它会启动无界面的 Gazebo server、RViz、控制仲裁器和
+一个包含六路摄像头画面的 GTA 风格 WASD 驾驶台；Gazebo GUI 默认关闭，设置
+`AGV_REMOTE_USE_GAZEBO_GUI=true` 可打开。若需要最高传感器渲染性能，可通过
+`AGV_REMOTE_USE_RVIZ=false` 关闭 RViz。关闭驾驶台或按 `Ctrl+C` 会关闭整套远程
+驾驶进程。必须点击 `REMOTE` 或按 `R` 显式解锁远驾，解锁时会清空残留方向键，随后
+重新按下 `W/S/A/D` 才会产生运动指令。点击驾驶台窗口后，`W` 每次按下将目标
+速度增加 `0.10 m/s`，`S` 每次按下降低 `0.10 m/s`，松开后保持定速，继续降低可
+经过零速进入倒车；`A/D` 按住左右转向、松开自动回正，`Space` 制动。
+`E` 锁存急停，停车后按 `Z` 复位；点击 `AUTO` 或按 `M` 会返回 AUTO 并撤销远驾
+解锁。远驾同时要求显式解锁和窗口焦点，窗口失去焦点、被关闭或控制进程中断时，车辆
+都会自动停车。旧终端控制仍可通过
 `AGV_REMOTE_TERMINAL_CONTROL=1 ./sim.sh remote` 使用。
+
+远驾仿真默认前进速度上限为 `3.0 m/s`、倒车上限为 `0.3 m/s`、最大驱动加速度为
+`0.35 m/s^2`。它们是仿真限值，尚不是经过实车验证的运行限值。
 如果终端或图形窗口被强制关闭，可执行 `./sim.sh stop` 一次性关闭本项目残留的
 Gazebo、RViz、传感器桥和控制节点，再重新启动。
 点击任意侧视或后视小画面，可以把该摄像头切换到上方主画面，再次点击其他画面即可
