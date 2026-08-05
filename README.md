@@ -3,7 +3,8 @@
 ROS 2 AGV simulation workspace for the Xiamen port scene. The repository keeps
 two ROS 2 workspaces:
 
-- `humble/`: ROS 2 Humble workspace.
+- `humble/`: ROS 2 Humble workspace, including Docker helper scripts for
+  Ubuntu 22.04 machines that do not have Humble installed locally.
 - `galatic/`: ROS 2 Galactic-compatible workspace, including Docker helper
   scripts for machines that do not have Galactic installed locally.
 
@@ -14,7 +15,8 @@ future bench and shadow-mode testing.
 
 这是厦门港 AGV 仿真项目，仓库中包含两个 ROS 2 工作空间：
 
-- `humble/`：ROS 2 Humble 工作空间。
+- `humble/`：ROS 2 Humble 工作空间，并提供 Docker 辅助脚本，方便 Ubuntu
+  22.04 且没有本机 Humble 环境的电脑运行。
 - `galatic/`：兼容 ROS 2 Galactic 的工作空间，并提供 Docker 辅助脚本，方便
   没有本机 Galactic 环境的电脑运行。
 
@@ -78,6 +80,43 @@ Docker 启动工具；新增远驾功能目前只在 Humble 中维护。
 真实 5G 和视频链路接入。
 
 ## Quick Start With Docker / Docker 快速启动
+
+Humble is the recommended workspace for current development and remote-driving
+features. On Ubuntu 22.04 without ROS 2 Humble, use the Humble Docker image:
+
+Humble 是当前推荐工作空间，远程驾驶等新功能也主要在 Humble 中维护。Ubuntu
+22.04 没有安装 ROS 2 Humble 时，可直接使用 Humble Docker 镜像：
+
+```bash
+git clone https://github.com/yxy12102415/xiamen-agv.git
+cd xiamen-agv/humble
+
+# If building the image locally
+./docker.sh build-image
+
+# Or, if receiving a shared image archive
+docker load < agv-sim-humble_latest.tar.gz
+
+./docker.sh gpu-check
+./docker.sh sim         # Gazebo + RViz
+./docker.sh sim control # MPC/control simulation
+./docker.sh sim remote  # six-camera remote-driving console
+```
+
+To share the Humble image with another machine:
+
+把 Humble 镜像发给另一台机器时：
+
+```bash
+docker save agv-sim-humble:latest | gzip > agv-sim-humble_latest.tar.gz
+```
+
+The image archive is not stored in GitHub; share it separately through a file
+server, release asset, or removable drive. The other machine should also clone
+or pull this repository, because the container mounts the source tree.
+
+镜像压缩包不会放进 GitHub，需要通过文件服务器、Release 附件或移动硬盘等方式单独
+发送。另一台机器也需要 clone 或 pull 本仓库，因为容器运行时会挂载源码目录。
 
 The Galactic workspace expects a Docker image named
 `agv-sim-galactic:latest`. If you receive the image as a compressed archive,

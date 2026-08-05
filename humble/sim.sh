@@ -4,6 +4,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
+if [ ! -f /opt/ros/humble/setup.bash ]; then
+  exec "${SCRIPT_DIR}/docker.sh" sim "$@"
+fi
+
 enable_nvidia_offload() {
   if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
     export __NV_PRIME_RENDER_OFFLOAD=1
@@ -16,7 +20,11 @@ enable_nvidia_offload() {
 
 enable_nvidia_offload
 
-WORLD_PATH="${SCRIPT_DIR}/install/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
+BUILD_BASE="${BUILD_BASE:-${SCRIPT_DIR}/build}"
+INSTALL_BASE="${INSTALL_BASE:-${SCRIPT_DIR}/install}"
+LOG_BASE="${LOG_BASE:-${SCRIPT_DIR}/log}"
+SETUP_FILE="${INSTALL_BASE}/setup.bash"
+WORLD_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
 MODE="${1:-}"
 
 stop_workspace_processes() {
@@ -66,7 +74,21 @@ stop_workspace_processes KILL
 sleep 0.5
 
 source /opt/ros/humble/setup.bash
-source "${SCRIPT_DIR}/install/setup.bash" 2>/tmp/agv_sim_setup_warnings.log
+
+if [ ! -f "${SETUP_FILE}" ]; then
+  echo "[sim.sh] Humble workspace is not built yet; running colcon build..."
+  colcon --log-base "${LOG_BASE}" build \
+    --symlink-install \
+    --build-base "${BUILD_BASE}" \
+    --install-base "${INSTALL_BASE}"
+fi
+
+if [ ! -f "${SETUP_FILE}" ]; then
+  echo "[sim.sh] Build finished but setup file was not found: ${SETUP_FILE}" >&2
+  exit 1
+fi
+
+source "${SETUP_FILE}" 2>/tmp/agv_sim_setup_warnings.log
 
 case "${MODE}" in
   map|scene)

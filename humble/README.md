@@ -65,6 +65,94 @@ source install/setup.bash
 规划、控制、API 和系统模块。不要同时运行两个仿真入口，除非使用不同的
 ROS/Gazebo domain 和 world。
 
+## Docker On Ubuntu 22.04 Without Humble / 无 Humble 环境用 Docker 运行
+
+If a machine has Ubuntu 22.04 but does not have ROS 2 Humble installed, run this
+workspace through the Humble Docker image. The helper script mounts this
+repository into the container, enables X11 GUI forwarding, reuses a running
+container when possible, and passes NVIDIA GPU access through when NVIDIA
+Container Toolkit is available.
+
+如果一台 Ubuntu 22.04 电脑没有安装 ROS 2 Humble，可以直接通过 Humble Docker 镜像
+运行。本目录的 `docker.sh` 会把当前仓库挂载进容器，打开 X11 图形界面转发，已有
+运行中容器时会复用，并在 NVIDIA Container Toolkit 可用时自动加上 GPU。
+
+First-time setup on the target machine:
+
+目标机器首次使用：
+
+```bash
+cd /data/projects/xiamen-agv-sim/humble
+
+# Option A: build the image locally from this repository
+./docker.sh build-image
+
+# Option B: if someone gives you a saved image archive
+docker load < agv-sim-humble_latest.tar.gz
+
+# Optional but recommended for Gazebo/RViz/lidar/camera performance
+./docker.sh gpu-check
+```
+
+Run the simulation:
+
+启动仿真：
+
+```bash
+# Normal Gazebo + RViz simulation
+./docker.sh sim
+
+# MPC/control mode
+./docker.sh sim control
+
+# Remote-driving console
+./docker.sh sim remote
+
+# Enter the container shell
+./docker.sh shell
+
+# Build or rebuild the workspace inside the container
+./docker.sh build
+```
+
+If the host itself does not have `/opt/ros/humble/setup.bash`, `./sim.sh` will
+automatically fall back to Docker, so this also works after the image exists:
+
+如果宿主机本身没有 `/opt/ros/humble/setup.bash`，`./sim.sh` 会自动转到 Docker，
+因此镜像存在后也可以直接运行：
+
+```bash
+./sim.sh
+./sim.sh control
+./sim.sh remote
+```
+
+Stop stale simulation processes or remove a conflicting container:
+
+停止残留仿真进程或清理同名容器：
+
+```bash
+./sim.sh stop
+./docker.sh clean
+```
+
+To share the image with another machine:
+
+把镜像发给别人时：
+
+```bash
+docker save agv-sim-humble:latest | gzip > agv-sim-humble_latest.tar.gz
+```
+
+The other machine still needs the repository files, because the container mounts
+the source tree instead of baking every project file into the image. Usually send
+the GitHub repository link plus the image archive, or let the other machine
+clone/pull the repository first.
+
+另一台机器仍然需要仓库源码，因为容器是挂载当前源码目录运行，并不是把项目所有文件
+固定烘进镜像。通常做法是给对方 GitHub 仓库地址加镜像压缩包，或者让对方先
+clone/pull 仓库。
+
 ## 远程驾驶网络仿真
 
 远驾模式已经加入应用层网络仿真。控制指令、模拟 B&R 状态反馈和六路摄像头默认
