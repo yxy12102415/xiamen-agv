@@ -10,5 +10,6 @@ build_galactic
 install_galactic
 log_galactic
 *.log
+*.tar.gz
 *.pyc
 __pycache__

@@ -71,11 +71,13 @@ If a machine has Ubuntu 22.04 but does not have ROS 2 Humble installed, run this
 workspace through the Humble Docker image. The helper script mounts this
 repository into the container, enables X11 GUI forwarding, reuses a running
 container when possible, and passes NVIDIA GPU access through when NVIDIA
-Container Toolkit is available.
+Container Toolkit is available. The default image is a prebuilt runtime image,
+so after `docker load` it can run the simulation directly without rebuilding.
 
 如果一台 Ubuntu 22.04 电脑没有安装 ROS 2 Humble，可以直接通过 Humble Docker 镜像
 运行。本目录的 `docker.sh` 会把当前仓库挂载进容器，打开 X11 图形界面转发，已有
-运行中容器时会复用，并在 NVIDIA Container Toolkit 可用时自动加上 GPU。
+运行中容器时会复用，并在 NVIDIA Container Toolkit 可用时自动加上 GPU。默认镜像
+是已经预编译好的运行版，`docker load` 之后可以直接启动。
 
 First-time setup on the target machine:
 
@@ -84,7 +86,7 @@ First-time setup on the target machine:
 ```bash
 cd /data/projects/xiamen-agv-sim/humble
 
-# Option A: build the image locally from this repository
+# Option A: build the runtime image locally from this repository
 ./docker.sh build-image
 
 # Option B: if someone gives you a saved image archive
@@ -92,6 +94,32 @@ docker load < agv-sim-humble_latest.tar.gz
 
 # Optional but recommended for Gazebo/RViz/lidar/camera performance
 ./docker.sh gpu-check
+```
+
+For a colleague who only wants to run the current Humble simulation from the
+prebuilt image:
+
+同事如果只是使用当前 Humble 仿真，不需要本机安装 ROS 2 Humble，按下面启动即可：
+
+```bash
+# One time only: import the image archive
+docker load < agv-sim-humble_latest.tar.gz
+
+# Then run from the repository's Humble workspace
+cd xiamen-agv/humble
+./sim.sh remote
+```
+
+`./sim.sh remote` starts the Gazebo server, RViz by default, the six-camera
+remote-driving console, simulated chassis feedback, H.264/UDP video link, and
+the 50 ms one-way network delay model. If you prefer to call Docker explicitly:
+
+`./sim.sh remote` 会启动 Gazebo server、默认 RViz、六路摄像头远程驾驶控制台、
+模拟底盘反馈、H.264/UDP 视频链路，以及 50 ms 单向网络时延模型。如果希望显式
+调用 Docker：
+
+```bash
+./docker.sh sim remote
 ```
 
 Run the simulation:
@@ -111,7 +139,8 @@ Run the simulation:
 # Enter the container shell
 ./docker.sh shell
 
-# Build or rebuild the workspace inside the container
+# If you need to compile inside Docker, build the developer image first
+./docker.sh build-image-dev
 ./docker.sh build
 ```
 
@@ -149,9 +178,29 @@ the source tree instead of baking every project file into the image. Usually sen
 the GitHub repository link plus the image archive, or let the other machine
 clone/pull the repository first.
 
+The runtime image is for direct use. If you need to build or change code inside
+Docker, use the developer image:
+
+```bash
+./docker.sh build-image-dev
+./docker.sh build
+```
+
+If `./docker.sh build-image` fails while resolving the base ROS image, Docker
+could not pull the base image from Docker Hub. The script automatically passes
+the current HTTP/HTTPS proxy to the build stage, but pulling a missing base
+image is still performed by the Docker daemon. Configure that daemon to use the
+proxy/registry mirror, or load a saved base image before building. Do not
+substitute `ros:humble-desktop-full`; that tag does not exist.
+
 另一台机器仍然需要仓库源码，因为容器是挂载当前源码目录运行，并不是把项目所有文件
 固定烘进镜像。通常做法是给对方 GitHub 仓库地址加镜像压缩包，或者让对方先
 clone/pull 仓库。
+如果 `./docker.sh build-image` 在解析基础 ROS 镜像时失败，说明 Docker daemon
+没能从 Docker Hub 拉取基础镜像；这不是项目编译错误。脚本会自动把当前 HTTP/HTTPS
+代理传给构建阶段，但拉取缺失基础镜像仍由 Docker daemon 完成。请给 daemon 配置
+代理/镜像源，或先导入别人保存的基础镜像。不要改用 `ros:humble-desktop-full`，
+该标签不存在。
 
 ## 远程驾驶网络仿真
 

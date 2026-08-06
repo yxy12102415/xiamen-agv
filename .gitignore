@@ -25,6 +25,7 @@ __pycache__/
 *.bag
 *.db3
 *.mcap
+*.tar.gz
 
 # Raw source assets kept outside ROS packages
 3D模型合集/

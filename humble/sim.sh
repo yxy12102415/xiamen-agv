@@ -21,7 +21,12 @@ enable_nvidia_offload() {
 enable_nvidia_offload
 
 BUILD_BASE="${BUILD_BASE:-${SCRIPT_DIR}/build}"
-INSTALL_BASE="${INSTALL_BASE:-${SCRIPT_DIR}/install}"
+RUNTIME_INSTALL_BASE="${AGV_RUNTIME_INSTALL_BASE:-/opt/xiamen-agv-sim/install}"
+if [ -f "${RUNTIME_INSTALL_BASE}/setup.bash" ]; then
+  INSTALL_BASE="${INSTALL_BASE:-${RUNTIME_INSTALL_BASE}}"
+else
+  INSTALL_BASE="${INSTALL_BASE:-${SCRIPT_DIR}/install}"
+fi
 LOG_BASE="${LOG_BASE:-${SCRIPT_DIR}/log}"
 SETUP_FILE="${INSTALL_BASE}/setup.bash"
 WORLD_PATH="${INSTALL_BASE}/agv_gazebo/share/agv_gazebo/worlds/xiamen_empty.sdf"
@@ -29,7 +34,7 @@ MODE="${1:-}"
 
 stop_workspace_processes() {
   local signal="${1:-TERM}"
-  pkill -"${signal}" -f "${SCRIPT_DIR}/install/.*/lib/.*" 2>/dev/null || true
+  pkill -"${signal}" -f "${INSTALL_BASE}/.*/lib/.*" 2>/dev/null || true
   pkill -"${signal}" -f "ros2 launch agv_gazebo agv_gazebo_sim.launch.py" 2>/dev/null || true
   pkill -"${signal}" -f "parameter_bridge.*sensing/camera" 2>/dev/null || true
   pkill -"${signal}" -f "parameter_bridge.*/world/xiamen_empty" 2>/dev/null || true

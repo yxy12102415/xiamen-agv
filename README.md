@@ -103,6 +103,36 @@ docker load < agv-sim-humble_latest.tar.gz
 ./docker.sh sim remote  # six-camera remote-driving console
 ```
 
+If a colleague receives the prebuilt Humble image archive, the shortest startup
+path is:
+
+同事拿到预编译 Humble 镜像压缩包后，最短启动流程如下：
+
+```bash
+# 1. Load the shared Docker image
+docker load < agv-sim-humble_latest.tar.gz
+
+# 2. Get the repository files
+git clone https://github.com/yxy12102415/xiamen-agv.git
+cd xiamen-agv/humble
+
+# 3. Start the remote-driving simulation
+./sim.sh remote
+```
+
+Because `./sim.sh` automatically falls back to Docker when local ROS 2 Humble is
+not installed, the target machine does not need a native Humble setup. To launch
+explicitly through Docker, use:
+
+因为宿主机没有安装 ROS 2 Humble 时，`./sim.sh` 会自动切换到 Docker，所以目标
+电脑不需要本机 Humble 环境。也可以显式通过 Docker 启动：
+
+```bash
+./docker.sh sim remote
+./docker.sh sim         # Gazebo + RViz
+./docker.sh sim control # MPC/control simulation
+```
+
 To share the Humble image with another machine:
 
 把 Humble 镜像发给另一台机器时：

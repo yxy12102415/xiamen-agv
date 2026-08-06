@@ -5,14 +5,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 IMAGE_NAME="${XIAMEN_AGV_HUMBLE_IMAGE:-agv-sim-humble:latest}"
+DEV_IMAGE_NAME="${XIAMEN_AGV_HUMBLE_DEV_IMAGE:-agv-sim-humble-dev:latest}"
+BASE_IMAGE="${XIAMEN_AGV_HUMBLE_BASE_IMAGE:-osrf/ros:humble-simulation}"
 CONTAINER_NAME="${XIAMEN_AGV_HUMBLE_CONTAINER:-xiamen-agv-humble}"
+DEV_CONTAINER_NAME="${XIAMEN_AGV_HUMBLE_DEV_CONTAINER:-xiamen-agv-humble-dev}"
 CONTAINER_PROJECT_DIR="${XIAMEN_AGV_CONTAINER_PROJECT_DIR:-/workspace/xiamen-agv-sim}"
 CONTAINER_WS_DIR="${CONTAINER_PROJECT_DIR}/humble"
 
 usage() {
   cat <<EOF
 Usage:
-  $0 build-image        Build the Humble Docker image
+  $0 build-image        Build the runtime Humble Docker image
+  $0 build-image-dev    Build the developer Humble Docker image
   $0 shell              Enter the Humble container
   $0 gui                Enter the Humble container with X11 enabled
   $0 sim [args...]      Run ./sim.sh inside the Humble container
@@ -23,11 +27,15 @@ Usage:
 
 Environment:
   XIAMEN_AGV_HUMBLE_IMAGE      Docker image. Default: agv-sim-humble:latest
+  XIAMEN_AGV_HUMBLE_DEV_IMAGE  Developer image. Default: agv-sim-humble-dev:latest
+  XIAMEN_AGV_HUMBLE_BASE_IMAGE Base ROS image. Default: osrf/ros:humble-simulation
   XIAMEN_AGV_HUMBLE_CONTAINER  Container name. Default: xiamen-agv-humble
+  XIAMEN_AGV_HUMBLE_DEV_CONTAINER Developer container name. Default: xiamen-agv-humble-dev
   XIAMEN_AGV_DOCKER_ARGS       Extra docker run args
 
 Examples:
   ./docker.sh build-image
+  ./docker.sh build-image-dev
   ./docker.sh shell
   ./docker.sh sim
   ./docker.sh sim remote
@@ -76,6 +84,30 @@ require_docker() {
   if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
     cat >&2 <<EOF
 Docker image not found: ${IMAGE_NAME}
+
+Build it locally:
+  ./docker.sh build-image
+
+Or load a shared image archive:
+  docker load < agv-sim-humble_latest.tar.gz
+
+Available images:
+EOF
+    docker images >&2
+    exit 1
+  fi
+}
+
+require_image() {
+  local image_name="${1:-}"
+  if [ -z "${image_name}" ]; then
+    echo "Internal error: missing image name." >&2
+    exit 1
+  fi
+
+  if ! docker image inspect "${image_name}" >/dev/null 2>&1; then
+    cat >&2 <<EOF
+Docker image not found: ${image_name}
 
 Build it locally:
   ./docker.sh build-image
@@ -274,7 +306,46 @@ run_container() {
 case "${1:-shell}" in
   build-image)
     require_docker_daemon "$@"
-    docker build -t "${IMAGE_NAME}" -f "${SCRIPT_DIR}/Dockerfile" "${SCRIPT_DIR}"
+    build_args=(
+      --target runtime \
+      --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+      -t "${IMAGE_NAME}" \
+      -f "${SCRIPT_DIR}/Dockerfile" \
+    )
+
+    for proxy_var in HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; do
+      if [ -n "${!proxy_var:-}" ]; then
+        build_args+=(--build-arg "${proxy_var}=${!proxy_var}")
+      fi
+    done
+
+    if [ -n "${HTTP_PROXY:-${http_proxy:-}}" ] || [ -n "${HTTPS_PROXY:-${https_proxy:-}}" ]; then
+      # A loopback proxy belongs to the host, so the build must share its network.
+      build_args+=(--network host)
+    fi
+
+    docker build "${build_args[@]}" "${SCRIPT_DIR}"
+    ;;
+  build-image-dev)
+    require_docker_daemon "$@"
+    build_args=(
+      --target builder \
+      --build-arg BASE_IMAGE="${BASE_IMAGE}" \
+      -t "${DEV_IMAGE_NAME}" \
+      -f "${SCRIPT_DIR}/Dockerfile" \
+    )
+
+    for proxy_var in HTTP_PROXY HTTPS_PROXY NO_PROXY http_proxy https_proxy no_proxy; do
+      if [ -n "${!proxy_var:-}" ]; then
+        build_args+=(--build-arg "${proxy_var}=${!proxy_var}")
+      fi
+    done
+
+    if [ -n "${HTTP_PROXY:-${http_proxy:-}}" ] || [ -n "${HTTPS_PROXY:-${https_proxy:-}}" ]; then
+      build_args+=(--network host)
+    fi
+
+    docker build "${build_args[@]}" "${SCRIPT_DIR}"
     ;;
   shell)
     require_docker "$@"
@@ -294,7 +365,9 @@ case "${1:-shell}" in
     ;;
   build)
     shift || true
-    require_docker build "$@"
+    IMAGE_NAME="${DEV_IMAGE_NAME}"
+    CONTAINER_NAME="${DEV_CONTAINER_NAME}"
+    require_image "${IMAGE_NAME}"
     exec_in_running_container agv /bin/bash -lc \
       'source /opt/ros/humble/setup.bash && colcon build --symlink-install "$@"' \
       bash "$@" && exit 0
@@ -311,6 +384,7 @@ case "${1:-shell}" in
     ;;
   clean)
     docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+    docker rm -f "${DEV_CONTAINER_NAME}" >/dev/null 2>&1 || true
     ;;
   -h|--help|help)
     usage
